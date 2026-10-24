@@ -16,6 +16,7 @@ const slim = (s) => ({
 export function ListsProvider({ children }) {
   const [favorites, setFavorites] = useState([])
   const [watchlist, setWatchlist] = useState([])
+  const [watching, setWatching] = useState([])
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -33,10 +34,12 @@ export function ListsProvider({ children }) {
           const data = snapshot.data()
           setFavorites(data.favorites ?? [])
           setWatchlist(data.watchlist ?? [])
+          setWatching(data.watching ?? [])
         } else {
           await setDoc(userDoc, {
             favorites: [],
             watchlist: [],
+            watching: [],
           })
         }
       } catch (error) {
@@ -53,7 +56,7 @@ export function ListsProvider({ children }) {
     }
   }, [])
 
-  async function saveLists(nextFavorites, nextWatchlist) {
+  async function saveLists(nextFavorites, nextWatchlist, nextWatching) {
     try {
       const credential = await authReady
       const userDoc = doc(db, 'users', credential.user.uid)
@@ -63,6 +66,7 @@ export function ListsProvider({ children }) {
         {
           favorites: nextFavorites,
           watchlist: nextWatchlist,
+          watching: nextWatching,
         },
         { merge: true }
       )
@@ -78,7 +82,7 @@ export function ListsProvider({ children }) {
 
     setFavorites(next)
 
-    if (ready) saveLists(next, watchlist)
+    if (ready) saveLists(next, watchlist, watching)
   }
 
   function toggleWatchlist(series) {
@@ -88,16 +92,30 @@ export function ListsProvider({ children }) {
 
     setWatchlist(next)
 
-    if (ready) saveLists(favorites, next)
+    if (ready) saveLists(favorites, next, watching)
+  }
+
+  function toggleWatching(series) {
+    const next = watching.some((s) => s.id === series.id)
+      ? watching.filter((s) => s.id !== series.id)
+      : [...watching, slim(series)]
+
+    setWatching(next)
+
+    if (ready) saveLists(favorites, watchlist, next)
   }
 
   const value = {
     favorites,
     watchlist,
+    watching,
+    ready,
     toggleFavorite,
     toggleWatchlist,
+    toggleWatching,
     isFavorite: (id) => favorites.some((s) => s.id === id),
     isInWatchlist: (id) => watchlist.some((s) => s.id === id),
+    isWatching: (id) => watching.some((s) => s.id === id),
   }
 
   return (
