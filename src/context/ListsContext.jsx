@@ -17,6 +17,7 @@ export function ListsProvider({ children }) {
   const [favorites, setFavorites] = useState([])
   const [watchlist, setWatchlist] = useState([])
   const [watching, setWatching] = useState([])
+  const [watched, setWatched] = useState([])
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -35,11 +36,13 @@ export function ListsProvider({ children }) {
           setFavorites(data.favorites ?? [])
           setWatchlist(data.watchlist ?? [])
           setWatching(data.watching ?? [])
+          setWatched(data.watched ?? [])
         } else {
           await setDoc(userDoc, {
             favorites: [],
             watchlist: [],
             watching: [],
+            watched: [],
           })
         }
       } catch (error) {
@@ -56,7 +59,12 @@ export function ListsProvider({ children }) {
     }
   }, [])
 
-  async function saveLists(nextFavorites, nextWatchlist, nextWatching) {
+  async function saveLists(
+    nextFavorites,
+    nextWatchlist,
+    nextWatching,
+    nextWatched
+  ) {
     try {
       const credential = await authReady
       const userDoc = doc(db, 'users', credential.user.uid)
@@ -67,11 +75,12 @@ export function ListsProvider({ children }) {
           favorites: nextFavorites,
           watchlist: nextWatchlist,
           watching: nextWatching,
+          watched: nextWatched,
         },
         { merge: true }
       )
     } catch (error) {
-      console.error('Error al guardar las listas en Firestore:', error)
+      console.error('Error al guardar las listas de Firestore:', error)
     }
   }
 
@@ -82,7 +91,7 @@ export function ListsProvider({ children }) {
 
     setFavorites(next)
 
-    if (ready) saveLists(next, watchlist, watching)
+    if (ready) saveLists(next, watchlist, watching, watched)
   }
 
   function toggleWatchlist(series) {
@@ -92,7 +101,7 @@ export function ListsProvider({ children }) {
 
     setWatchlist(next)
 
-    if (ready) saveLists(favorites, next, watching)
+    if (ready) saveLists(favorites, next, watching, watched)
   }
 
   function toggleWatching(series) {
@@ -102,20 +111,33 @@ export function ListsProvider({ children }) {
 
     setWatching(next)
 
-    if (ready) saveLists(favorites, watchlist, next)
+    if (ready) saveLists(favorites, watchlist, next, watched)
+  }
+
+  function toggleWatched(series) {
+    const next = watched.some((s) => s.id === series.id)
+      ? watched.filter((s) => s.id !== series.id)
+      : [...watched, slim(series)]
+
+    setWatched(next)
+
+    if (ready) saveLists(favorites, watchlist, watching, next)
   }
 
   const value = {
     favorites,
     watchlist,
     watching,
+    watched,
     ready,
     toggleFavorite,
     toggleWatchlist,
     toggleWatching,
+    toggleWatched,
     isFavorite: (id) => favorites.some((s) => s.id === id),
     isInWatchlist: (id) => watchlist.some((s) => s.id === id),
     isWatching: (id) => watching.some((s) => s.id === id),
+    isWatched: (id) => watched.some((s) => s.id === id),
   }
 
   return (

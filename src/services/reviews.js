@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from 'firebase/firestore'
 
@@ -35,15 +36,17 @@ export async function getSeriesReviews(seriesId) {
   })
 }
 
-// Crea una reseña para la serie.
-export async function createReview({ seriesId, rating, text }) {
-  const credential = await authReady
+// Valida y prepara los datos de una reseña.
+function normalizeReview({ seriesId, seriesName, rating, text }) {
   const normalizedText = text.trim()
   const normalizedRating = Number(rating)
+  const normalizedSeriesName = String(seriesName ?? '').trim()
 
-  if (!Number.isInteger(normalizedRating) ||
-      normalizedRating < 1 ||
-      normalizedRating > 5) {
+  if (
+    !Number.isInteger(normalizedRating) ||
+    normalizedRating < 1 ||
+    normalizedRating > 5
+  ) {
     throw new Error('La puntuación debe estar entre 1 y 5.')
   }
 
@@ -51,25 +54,66 @@ export async function createReview({ seriesId, rating, text }) {
     throw new Error('La reseña debe tener entre 1 y 1000 caracteres.')
   }
 
-  const review = {
+  if (!normalizedSeriesName) {
+    throw new Error('No se encontró el nombre de la serie.')
+  }
+
+  return {
     seriesId: Number(seriesId),
+    seriesName: normalizedSeriesName,
     rating: normalizedRating,
     text: normalizedText,
+  }
+}
+
+// Crea una reseña nueva.
+export async function createReview({
+  seriesId,
+  seriesName,
+  rating,
+  text,
+}) {
+  const credential = await authReady
+
+  const normalized = normalizeReview({
+    seriesId,
+    seriesName,
+    rating,
+    text,
+  })
+
+  const review = {
+    ...normalized,
     userId: credential.user.uid,
     createdAt: serverTimestamp(),
   }
 
-  console.log('Intentando guardar reseña:', review)
-
   const reviewRef = await addDoc(reviewsCollection, review)
 
-  console.log('Reseña guardada en Firestore. ID:', reviewRef.id)
-
-  return reviewRef.id 
+  return reviewRef.id
 }
 
-// Elimina una reseña propia.
-// Las reglas de Firestore verifican los permisos.
+// Actualiza la puntuación y el texto de una reseña existente.
+export async function updateReview(reviewId, {
+  seriesId,
+  seriesName,
+  rating,
+  text,
+}) {
+  await authReady
+
+  const normalized = normalizeReview({
+    seriesId,
+    seriesName,
+    rating,
+    text,
+  })
+
+  await updateDoc(doc(db, 'reviews', reviewId), normalized)
+}
+
+// Elimina una reseña.
+// Las reglas de Firestore verifican que sea propia.
 export async function deleteReview(reviewId) {
   await authReady
   return deleteDoc(doc(db, 'reviews', reviewId))

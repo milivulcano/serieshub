@@ -9,6 +9,7 @@ import {
 import { useLists } from '../context/ListsContext'
 import {
   createReview,
+  updateReview,
   deleteReview,
   getCurrentUserId,
   getSeriesReviews,
@@ -48,9 +49,11 @@ export default function SeriesDetails() {
     isFavorite,
     isInWatchlist,
     isWatching,
+    isWatched,
     toggleFavorite,
     toggleWatchlist,
     toggleWatching,
+    toggleWatched,
   } = useLists()
 
   const [series, setSeries] = useState(null)
@@ -60,13 +63,14 @@ export default function SeriesDetails() {
   const [error, setError] = useState('')
 
   const [reviews, setReviews] = useState([])
-  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewRating, setReviewRating] = useState(0)
   const [reviewModalOpen, setReviewModalOpen] = useState(false)
   const [reviewText, setReviewText] = useState('')
   const [reviewLoading, setReviewLoading] = useState(false)
   const [reviewError, setReviewError] = useState('')
   const [reviewMessage, setReviewMessage] = useState('')
   const [currentUserId, setCurrentUserId] = useState('')
+  const [editingReviewId, setEditingReviewId] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -135,6 +139,34 @@ export default function SeriesDetails() {
     }
   }, [id])
 
+  function openNewReview() {
+    setEditingReviewId(null)
+    setReviewRating(0)
+    setReviewText('')
+    setReviewError('')
+    setReviewMessage('')
+    setReviewModalOpen(true)
+  }
+
+  function openEditReview(review) {
+    setEditingReviewId(review.id)
+    setReviewRating(review.rating)
+    setReviewText(review.text)
+    setReviewError('')
+    setReviewMessage('')
+    setReviewModalOpen(true)
+  }
+
+  function closeReviewModal() {
+    if (reviewLoading) return
+
+    setReviewModalOpen(false)
+    setEditingReviewId(null)
+    setReviewRating(0)
+    setReviewText('')
+    setReviewError('')
+  }
+
   async function handleReviewSubmit(event) {
     event.preventDefault()
 
@@ -151,26 +183,48 @@ export default function SeriesDetails() {
       return
     }
 
+    if (reviewRating === 0) {
+      setReviewError('Elegí una puntuación con las estrellas.')
+      return
+    }
+
     setReviewLoading(true)
 
     try {
-      await createReview({
+      const reviewData = {
         seriesId: series.id,
+        seriesName: series.name,
         rating: reviewRating,
         text: reviewText,
-      })
+      }
+
+      if (editingReviewId) {
+          await updateReview(editingReviewId, reviewData)
+        } else {
+          await createReview(reviewData)
+        }
+
+        // Si la serie todavía no está marcada como vista,
+        // la agregamos automáticamente a "Ya la vi".
+        if (!isWatched(series.id)) {
+          await toggleWatched(series)
+        }
 
       const updatedReviews = await getSeriesReviews(series.id)
-
       setReviews(updatedReviews)
-      setReviewText('')
-      setReviewRating(5)
       setReviewModalOpen(false)
-      setReviewMessage('¡Tu reseña se publicó correctamente!')
+      setEditingReviewId(null)
+      setReviewText('')
+      setReviewRating(0)
+      setReviewMessage(
+        editingReviewId
+          ? '¡Tu reseña se actualizó correctamente!'
+          : '¡Tu reseña se publicó correctamente!'
+      )
     } catch (err) {
-      console.error('Error al publicar la reseña:', err)
+      console.error('Error al guardar la reseña:', err)
       setReviewError(
-        'No se pudo publicar la reseña. Revisá tu conexión e intentá nuevamente.'
+        'No se pudo guardar la reseña. Revisá tu conexión e intentá nuevamente.'
       )
     } finally {
       setReviewLoading(false)
@@ -179,7 +233,7 @@ export default function SeriesDetails() {
 
   async function handleReviewDelete(reviewId) {
     const confirmed = window.confirm(
-      '¿Seguro que querés eliminar tu reseña?'
+      '¿Seguro que querés eliminar tu reseña? Esta acción no se puede deshacer.'
     )
 
     if (!confirmed) return
@@ -197,7 +251,6 @@ export default function SeriesDetails() {
       setReviewMessage('La reseña se eliminó correctamente.')
     } catch (err) {
       console.error('Error al eliminar la reseña:', err)
-      setReviewMessage('')
       setReviewError(
         'No se pudo eliminar la reseña. Intentá nuevamente.'
       )
@@ -213,7 +266,7 @@ export default function SeriesDetails() {
   }
 
   const backButton = (
-    <button className="back-btn" onClick={goBack}>
+    <button className="back-btn" onClick={goBack} type="button">
       ← Volver
     </button>
   )
@@ -241,6 +294,7 @@ export default function SeriesDetails() {
   const fav = isFavorite(series.id)
   const later = isInWatchlist(series.id)
   const watching = isWatching(series.id)
+  const watched = isWatched(series.id)
 
   const poster = posterUrl(series.poster_path, 'w500')
   const backdrop = posterUrl(series.backdrop_path, 'w780')
@@ -384,38 +438,61 @@ export default function SeriesDetails() {
 
         <div className="detail-actions detail-actions-centered">
           <button
+            className={`detail-btn ${watched ? 'on' : ''}`}
+            type="button"
+            onClick={() => toggleWatched(series)}
+            aria-pressed={watched}
+            aria-label={watched ? 'Quitar de Ya la vi' : 'Marcar como vista'}
+            title={watched ? 'Quitar de Ya la vi' : 'Marcar como vista'}
+          >
+            <span aria-hidden="true">{watched ? '◉' : '◎'}</span>
+            {watched ? 'Ya la vi' : 'Ya la vi'}
+          </button>
+
+          <button
             className={`detail-btn ${fav ? 'on' : ''}`}
+            type="button"
             onClick={() => toggleFavorite(series)}
             aria-pressed={fav}
+            aria-label={fav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
           >
-            {fav ? '♥ En favoritos' : '♡ Agregar a favoritos'}
+            <span aria-hidden="true">{fav ? '♥' : '♡'}</span>
+            Favoritos
           </button>
 
           <button
             className={`detail-btn ${later ? 'on' : ''}`}
+            type="button"
             onClick={() => toggleWatchlist(series)}
             aria-pressed={later}
+            aria-label={later ? 'Quitar de Quiero ver' : 'Agregar a Quiero ver'}
           >
-            {later ? '✓ En Quiero ver' : '+ Quiero ver'}
+            <span aria-hidden="true">{later ? '✓' : '+'}</span>
+            Quiero ver
           </button>
 
           <button
             className={`detail-btn ${watching ? 'on' : ''}`}
+            type="button"
             onClick={() => toggleWatching(series)}
             aria-pressed={watching}
+            aria-label={
+              watching
+                ? 'Quitar de La estoy viendo'
+                : 'Marcar como La estoy viendo'
+            }
           >
-            {watching ? '▶ La estoy viendo' : '▷ La estoy viendo'}
+            <span aria-hidden="true">{watching ? '▶' : '▷'}</span>
+            La estoy viendo
           </button>
 
           <button
             className="detail-btn"
             type="button"
-            onClick={() => {
-              setReviewError('')
-              setReviewModalOpen(true)
-            }}
+            onClick={openNewReview}
           >
-            ✎ Reseñar
+            <span aria-hidden="true">✎</span>
+            Reseñar
           </button>
         </div>
       </section>
@@ -451,9 +528,7 @@ export default function SeriesDetails() {
       {reviewModalOpen && (
         <div
           className="review-modal-overlay"
-          onClick={() => {
-            if (!reviewLoading) setReviewModalOpen(false)
-          }}
+          onClick={closeReviewModal}
         >
           <div
             className="review-modal"
@@ -465,9 +540,7 @@ export default function SeriesDetails() {
             <button
               className="review-modal-close"
               type="button"
-              onClick={() => {
-                if (!reviewLoading) setReviewModalOpen(false)
-              }}
+              onClick={closeReviewModal}
               aria-label="Cerrar ventana"
               disabled={reviewLoading}
             >
@@ -475,7 +548,7 @@ export default function SeriesDetails() {
             </button>
 
             <h2 id="review-modal-title">
-              Reseñar {series.name}
+              {editingReviewId ? 'Editar reseña' : 'Reseñar'} {series.name}
             </h2>
 
             <p>Compartí tu opinión sobre esta serie.</p>
@@ -484,24 +557,50 @@ export default function SeriesDetails() {
               className="review-form"
               onSubmit={handleReviewSubmit}
             >
-              <label htmlFor="review-rating">
+              <label id="review-rating-label">
                 Tu puntuación
               </label>
 
-              <select
-                id="review-rating"
-                value={reviewRating}
-                onChange={(event) =>
-                  setReviewRating(Number(event.target.value))
-                }
-                disabled={reviewLoading}
+              <div
+                className="review-rating-row"
+                role="group"
+                aria-labelledby="review-rating-label"
               >
-                <option value={5}>★★★★★ — Excelente</option>
-                <option value={4}>★★★★☆ — Muy buena</option>
-                <option value={3}>★★★☆☆ — Buena</option>
-                <option value={2}>★★☆☆☆ — Regular</option>
-                <option value={1}>★☆☆☆☆ — No me gustó</option>
-              </select>
+                <div className="review-star-selector">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`review-star-button ${
+                        star <= reviewRating ? 'selected' : ''
+                      }`}
+                      onClick={() => setReviewRating(star)}
+                      disabled={reviewLoading}
+                      aria-label={`${star} de 5 estrellas`}
+                      aria-pressed={reviewRating === star}
+                    >
+                      {star <= reviewRating ? '★' : '☆'}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className={`review-favorite-button ${
+                    fav ? 'on' : ''
+                  }`}
+                  onClick={() => toggleFavorite(series)}
+                  aria-label={
+                    fav
+                      ? 'Quitar serie de favoritos'
+                      : 'Agregar serie a favoritos'
+                  }
+                  aria-pressed={fav}
+                  title={fav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                >
+                  {fav ? '♥' : '♡'}
+                </button>
+              </div>
 
               <label htmlFor="review-text">
                 Tu reseña
@@ -533,7 +632,11 @@ export default function SeriesDetails() {
                 type="submit"
                 disabled={reviewLoading}
               >
-                {reviewLoading ? 'Publicando…' : 'Publicar reseña'}
+                {reviewLoading
+                  ? 'Guardando…'
+                  : editingReviewId
+                    ? 'Guardar cambios'
+                    : 'Publicar reseña'}
               </button>
             </form>
           </div>
@@ -553,19 +656,35 @@ export default function SeriesDetails() {
             reviews.map((review) => (
               <article className="review-card" key={review.id}>
                 <div className="review-card-header">
-                  <span className="review-rating">
+                  <span
+                    className="review-rating"
+                    aria-label={`${review.rating} de 5 estrellas`}
+                  >
                     {'★'.repeat(review.rating)}
-                    {'☆'.repeat(5 - review.rating)}
                   </span>
 
                   {review.userId === currentUserId && (
-                    <button
-                      className="review-delete"
-                      type="button"
-                      onClick={() => handleReviewDelete(review.id)}
-                    >
-                      Eliminar mi reseña
-                    </button>
+                    <div className="review-card-actions">
+                      <button
+                        className="review-icon-button"
+                        type="button"
+                        onClick={() => openEditReview(review)}
+                        aria-label="Editar mi reseña"
+                        title="Editar reseña"
+                      >
+                        ✎
+                      </button>
+
+                      <button
+                        className="review-icon-button review-delete"
+                        type="button"
+                        onClick={() => handleReviewDelete(review.id)}
+                        aria-label="Eliminar mi reseña"
+                        title="Eliminar reseña"
+                      >
+                        ♲
+                      </button>
+                    </div>
                   )}
                 </div>
 

@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useLists } from '../context/ListsContext'
 
 export default function Header() {
-  const { favorites, watchlist, watching } = useLists()
+  const { favorites, watchlist, watching, watched } = useLists()
 
   return (
     <header className="header">
@@ -22,6 +22,10 @@ export default function Header() {
 
           <NavLink to="/quiero-ver">
             Quiero ver <span className="count">{watchlist.length}</span>
+          </NavLink>
+
+          <NavLink to="/ya-la-vi">
+            Ya la vi <span className="count">{watched.length}</span>
           </NavLink>
 
           <NavLink to="/favoritos">

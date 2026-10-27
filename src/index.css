@@ -1,4 +1,4 @@
-/* ===== Tokens: cambiando estos valores cambia toda la identidad visual ===== */
+/* ===== Tokens: identidad visual ===== */
 :root {
   --bg: #15161e;
   --surface: #20222d;
@@ -11,66 +11,289 @@
   color-scheme: dark;
 }
 
-* { box-sizing: border-box; margin: 0; }
-body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; }
-button, input { font: inherit; }
-a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.container { width: min(1120px, 100% - 2rem); margin-inline: auto; }
-main.container { padding-block: 2rem 4rem; }
-
-/* ===== Header ===== */
-.header { background: var(--surface); position: sticky; top: 0; z-index: 10; }
-.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-block: .8rem; }
-.logo { font-size: 1.35rem; font-weight: 800; letter-spacing: -.02em; }
-.nav { display: flex; gap: .4rem; }
-.nav a { padding: .45rem .8rem; border-radius: 999px; color: var(--muted); font-weight: 500; }
-.nav a:hover { color: var(--text); }
-.nav a.active { background: var(--surface-2); color: var(--text); }
-.count { background: var(--accent); color: #1a1015; border-radius: 999px; font-size: .75rem; font-weight: 700; padding: .05rem .45rem; margin-left: .25rem; }
-
-/* ===== Hero y buscador ===== */
-.hero { padding-block: 2rem 1.5rem; max-width: 640px; }
-.hero h1 { font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.1; letter-spacing: -.03em; margin-bottom: .6rem; }
-.hero p { color: var(--muted); margin-bottom: 1.4rem; }
-.search { width: 100%; padding: .9rem 1.1rem; border-radius: var(--radius); border: 2px solid transparent; background: var(--surface); color: var(--text); }
-.search:focus { border-color: var(--accent); outline: none; }
-
-.section-title, .page-title { margin-block: 1.5rem 1.2rem; font-size: 1.3rem; }
-.page-title { font-size: 2rem; letter-spacing: -.02em; }
-
-/* ===== Grilla y tarjetas ===== */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.4rem 1rem; }
-.card-title { font-size: .95rem; margin-top: .6rem; line-height: 1.3; }
-.card-meta { color: var(--muted); font-size: .85rem; }
-.poster { position: relative; aspect-ratio: 2 / 3; border-radius: var(--radius); overflow: hidden; background: var(--surface); }
-.poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.no-poster { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: .9rem; }
-
-.actions { position: absolute; inset: auto .5rem .5rem .5rem; display: flex; justify-content: space-between; }
-.icon-btn { width: 2.4rem; height: 2.4rem; border-radius: 50%; border: none; cursor: pointer; font-size: 1.15rem; background: rgb(21 22 30 / .85); color: var(--text); backdrop-filter: blur(4px); transition: transform .15s; }
-.icon-btn:hover { transform: scale(1.1); }
-.icon-btn.on { background: var(--accent); color: #1a1015; }
-
-/* ===== Mensajes ===== */
-.message, .empty { color: var(--muted); padding-block: 1rem; }
-.error { color: #ff9b9b; background: rgb(255 80 80 / .1); padding: .8rem 1rem; border-radius: var(--radius); }
-
-@media (max-width: 480px) {
-  .grid { grid-template-columns: repeat(2, 1fr); }
-  .nav a { padding: .4rem .6rem; font-size: .9rem; }
+/* ===== Base ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
 }
-@media (prefers-reduced-motion: reduce) { .icon-btn { transition: none; } }
 
-/* ===== Enlaces de las tarjetas ===== */
-.poster-link {
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.container {
+  width: min(1120px, 100% - 2rem);
+  margin-inline: auto;
+}
+
+main.container {
+  padding-block: 2rem 4rem;
+}
+
+/* ===== Header y navegación ===== */
+.header {
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-block: 0.8rem;
+}
+
+.logo {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.nav {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.nav a {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.nav a:hover {
+  color: var(--text);
+}
+
+.nav a.active {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.count {
+  background: var(--accent);
+  color: #1a1015;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.05rem 0.45rem;
+  margin-left: 0.25rem;
+}
+
+/* ===== Inicio, presentación y buscador ===== */
+.hero {
+  padding-block: 2rem 1.5rem;
+  max-width: 640px;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.6rem;
+}
+
+.hero p {
+  color: var(--muted);
+  margin-bottom: 1.4rem;
+}
+
+.search {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.search:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.section-title,
+.page-title {
+  margin-block: 1.5rem 1.2rem;
+  font-size: 1.3rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+}
+
+/* ===== Grilla y tarjetas de series ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.4rem 1rem;
+}
+
+.card {
+  min-width: 0;
+}
+
+/* Póster con bordes redondeados */
+.poster {
+  position: relative;
   display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.poster-link {
+  color: white;
+  text-decoration: none;
+}
+
+.poster img {
+  display: block;
+  width: 100%;
   height: 100%;
+  object-fit: cover;
+}
+
+/* Efecto al pasar el cursor sobre el póster */
+.poster.poster-link > img {
+  transition: filter 0.25s ease, transform 0.3s ease;
+}
+
+.poster-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  transition: background 0.25s ease, opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.poster-overlay-title {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  transform: translateY(8px);
+  transition: transform 0.25s ease;
+}
+
+.poster.poster-link:hover .poster-overlay,
+.poster.poster-link:focus-visible .poster-overlay {
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 1;
+}
+
+.poster.poster-link:hover .poster-overlay-title,
+.poster.poster-link:focus-visible .poster-overlay-title {
+  transform: translateY(0);
+}
+
+.poster.poster-link:hover > img,
+.poster.poster-link:focus-visible > img {
+  filter: brightness(0.65);
+  transform: scale(1.03);
+}
+
+.no-poster {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  margin-top: 0.6rem;
+  line-height: 1.3;
+}
+
+.card-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .title-link:hover {
   color: var(--accent);
+}
+
+/* Acciones de tarjetas, si algún componente las utiliza */
+.actions {
+  position: absolute;
+  inset: auto 0.5rem 0.5rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.icon-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 1.15rem;
+  background: rgb(21 22 30 / 85%);
+  color: var(--text);
+  backdrop-filter: blur(4px);
+  transition: transform 0.15s;
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+}
+
+.icon-btn.on {
+  background: var(--accent);
+  color: #1a1015;
+}
+
+/* ===== Mensajes y estados ===== */
+.message,
+.empty {
+  color: var(--muted);
+  padding-block: 1rem;
+}
+
+.error {
+  color: #ff9b9b;
+  background: rgb(255 80 80 / 10%);
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius);
 }
 
 /* ===== Ficha de detalle ===== */
@@ -119,6 +342,10 @@ main.container { padding-block: 2rem 4rem; }
   display: block;
 }
 
+.details-info {
+  min-width: 0;
+}
+
 .details-info h1 {
   font-size: clamp(1.7rem, 4vw, 2.6rem);
   line-height: 1.15;
@@ -157,10 +384,21 @@ main.container { padding-block: 2rem 4rem; }
   font-size: 0.88rem;
 }
 
+/* Botones de la ficha */
 .detail-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.detail-actions-centered {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+  width: 100%;
 }
 
 .detail-btn {
@@ -171,6 +409,27 @@ main.container { padding-block: 2rem 4rem; }
   padding: 0.6rem 1.1rem;
   cursor: pointer;
   font-weight: 600;
+}
+
+.detail-actions-centered .detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  margin: 0;
+  min-height: 46px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.detail-actions-centered .detail-btn span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 2px;
+  font-size: 1.15em;
 }
 
 .detail-btn:hover {
@@ -198,20 +457,15 @@ main.container { padding-block: 2rem 4rem; }
   margin-bottom: 0.8rem;
 }
 
-.trailer {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: var(--surface);
+/* Sinopsis y plataformas */
+.details-description,
+.details-platforms {
+  margin-top: 1.5rem;
 }
 
-.trailer iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
+.details-description .section-title,
+.details-platforms .section-title {
+  margin-bottom: 0.65rem;
 }
 
 .provider-group {
@@ -233,6 +487,10 @@ main.container { padding-block: 2rem 4rem; }
   gap: 0.6rem;
 }
 
+.details-platforms .providers {
+  gap: 0.75rem;
+}
+
 .providers img {
   width: 48px;
   height: 48px;
@@ -240,25 +498,35 @@ main.container { padding-block: 2rem 4rem; }
   display: block;
 }
 
+.details-platforms .providers img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
 .text-link {
   color: var(--accent);
   text-decoration: underline;
 }
 
-/* ===== Adaptación a celulares ===== */
-@media (max-width: 640px) {
-  .details-hero-inner {
-    grid-template-columns: 1fr;
-    padding: 1.2rem;
-  }
+/* Reproductor del tráiler */
+.trailer {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
 
-  .details-poster {
-    max-width: 200px;
-  }
+.trailer iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 /* ===== Reseñas de la comunidad ===== */
-
 .reviews-section {
   width: 100%;
 }
@@ -271,7 +539,7 @@ main.container { padding-block: 2rem 4rem; }
   padding: 1.25rem;
   background: #171923;
   border: 1px solid #303342;
-  border-radius: 12px;
+  border-radius: var(--radius);
 }
 
 .review-form label {
@@ -305,6 +573,11 @@ main.container { padding-block: 2rem 4rem; }
   align-self: flex-start;
 }
 
+.review-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .review-counter {
   margin: -0.25rem 0 0;
   color: #a4a6b5;
@@ -323,7 +596,7 @@ main.container { padding-block: 2rem 4rem; }
   padding: 1.25rem;
   background: #171923;
   border: 1px solid #303342;
-  border-radius: 12px;
+  border-radius: var(--radius);
 }
 
 .review-card-header {
@@ -354,6 +627,13 @@ main.container { padding-block: 2rem 4rem; }
   font-size: 0.85rem;
 }
 
+/* Acciones de cada reseña */
+.review-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .review-delete {
   padding: 0.45rem 0.7rem;
   color: #ff9b9b;
@@ -367,49 +647,107 @@ main.container { padding-block: 2rem 4rem; }
   background: #382027;
 }
 
-.review-form button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+.review-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border, #444);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-@media (max-width: 600px) {
-  .review-form,
-  .review-card {
-    padding: 1rem;
-  }
-
-  .review-card-header {
-    align-items: flex-start;
-  }
+.review-icon-button:hover {
+  background: rgba(128, 128, 128, 0.16);
+  transform: translateY(-1px);
 }
 
-/* Sinopsis y plataformas dentro del bloque de información */
-.details-description,
-.details-platforms {
-  margin-top: 1.5rem;
+.review-icon-button.review-delete:hover {
+  color: #ff5b65;
+  border-color: #ff5b65;
 }
 
-.details-description .section-title,
-.details-platforms .section-title {
-  margin-bottom: 0.65rem;
-}
-
-.details-platforms .providers {
+/* Selector de estrellas */
+.review-star-selector {
   display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 18px;
+}
+
+.review-star-button {
+  border: none;
+  background: transparent;
+  padding: 2px;
+  font-size: 2rem;
+  line-height: 1;
+  color: #b8b8b8;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.review-star-button.selected {
+  color: #f5b82e;
+}
+
+.review-star-button:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.review-star-button:focus-visible {
+  outline: 2px solid #f5b82e;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.review-star-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.review-star-value {
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* Acciones dentro del formulario de reseñas */
+.review-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
-  gap: 0.75rem;
 }
 
-.details-platforms .providers img {
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
+.review-favorite-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border, #444);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 1.7rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.details-info {
-  min-width: 0;
+.review-favorite-button:hover {
+  transform: scale(1.08);
 }
 
+.review-favorite-button.on {
+  color: #ff5b82;
+  border-color: #ff5b82;
+}
+
+/* ===== Modal de reseñas ===== */
 .review-modal-overlay {
   position: fixed;
   inset: 0;
@@ -481,8 +819,87 @@ main.container { padding-block: 2rem 4rem; }
   box-sizing: border-box;
 }
 
+/* ===== Adaptación a celulares ===== */
+@media (max-width: 640px) {
+  .details-hero-inner {
+    grid-template-columns: 1fr;
+    padding: 1.2rem;
+  }
+
+  .details-poster {
+    max-width: 200px;
+  }
+}
+
 @media (max-width: 600px) {
+  .detail-actions-centered {
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .detail-actions-centered .detail-btn {
+    flex: 1 1 145px;
+    padding: 12px 14px;
+    white-space: normal;
+  }
+
+  .review-form,
+  .review-card {
+    padding: 1rem;
+  }
+
+  .review-card-header {
+    align-items: flex-start;
+  }
+
   .review-modal {
     padding: 1.5rem;
+  }
+
+  .review-rating-row {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .nav a {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* En pantallas táctiles, mostrar el nombre sobre el póster */
+@media (hover: none) {
+  .poster-overlay {
+    align-items: flex-end;
+    justify-content: flex-start;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.75),
+      rgba(0, 0, 0, 0) 65%
+    );
+    opacity: 1;
+  }
+
+  .poster-overlay-title {
+    transform: none;
+    text-align: left;
+  }
+}
+
+/* Respeta la preferencia de reducir animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .icon-btn,
+  .poster img,
+  .poster-overlay,
+  .poster-overlay-title,
+  .review-star-button,
+  .review-favorite-button,
+  .review-icon-button {
+    transition: none;
   }
 }
