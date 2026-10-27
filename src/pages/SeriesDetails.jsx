@@ -7,6 +7,12 @@ import {
   posterUrl,
 } from '../services/tmdb'
 import { useLists } from '../context/ListsContext'
+import {
+  createReview,
+  deleteReview,
+  getCurrentUserId,
+  getSeriesReviews,
+} from '../services/reviews'
 
 const STATUS = {
   'Returning Series': 'En emisión',
@@ -41,8 +47,10 @@ export default function SeriesDetails() {
   const {
     isFavorite,
     isInWatchlist,
+    isWatching,
     toggleFavorite,
     toggleWatchlist,
+    toggleWatching,
   } = useLists()
 
   const [series, setSeries] = useState(null)
@@ -50,6 +58,15 @@ export default function SeriesDetails() {
   const [providers, setProviders] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [reviews, setReviews] = useState([])
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const [reviewMessage, setReviewMessage] = useState('')
+  const [currentUserId, setCurrentUserId] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -85,6 +102,107 @@ export default function SeriesDetails() {
 
     return () => controller.abort()
   }, [id])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadReviews() {
+      try {
+        const [userId, seriesReviews] = await Promise.all([
+          getCurrentUserId(),
+          getSeriesReviews(id),
+        ])
+
+        if (active) {
+          setCurrentUserId(userId)
+          setReviews(seriesReviews)
+          setReviewError('')
+        }
+      } catch (err) {
+        if (active) {
+          setReviewError(
+            'No se pudieron cargar las reseñas. Intentá nuevamente.'
+          )
+          console.error('Error al cargar reseñas:', err)
+        }
+      }
+    }
+
+    loadReviews()
+
+    return () => {
+      active = false
+    }
+  }, [id])
+
+  async function handleReviewSubmit(event) {
+    event.preventDefault()
+
+    setReviewError('')
+    setReviewMessage('')
+
+    if (!reviewText.trim()) {
+      setReviewError('Escribí tu reseña antes de publicarla.')
+      return
+    }
+
+    if (reviewText.trim().length > 1000) {
+      setReviewError('La reseña no puede superar los 1000 caracteres.')
+      return
+    }
+
+    setReviewLoading(true)
+
+    try {
+      await createReview({
+        seriesId: series.id,
+        rating: reviewRating,
+        text: reviewText,
+      })
+
+      const updatedReviews = await getSeriesReviews(series.id)
+
+      setReviews(updatedReviews)
+      setReviewText('')
+      setReviewRating(5)
+      setReviewModalOpen(false)
+      setReviewMessage('¡Tu reseña se publicó correctamente!')
+    } catch (err) {
+      console.error('Error al publicar la reseña:', err)
+      setReviewError(
+        'No se pudo publicar la reseña. Revisá tu conexión e intentá nuevamente.'
+      )
+    } finally {
+      setReviewLoading(false)
+    }
+  }
+
+  async function handleReviewDelete(reviewId) {
+    const confirmed = window.confirm(
+      '¿Seguro que querés eliminar tu reseña?'
+    )
+
+    if (!confirmed) return
+
+    setReviewError('')
+    setReviewMessage('')
+
+    try {
+      await deleteReview(reviewId)
+
+      setReviews((currentReviews) =>
+        currentReviews.filter((review) => review.id !== reviewId)
+      )
+
+      setReviewMessage('La reseña se eliminó correctamente.')
+    } catch (err) {
+      console.error('Error al eliminar la reseña:', err)
+      setReviewMessage('')
+      setReviewError(
+        'No se pudo eliminar la reseña. Intentá nuevamente.'
+      )
+    }
+  }
 
   const goBack = () => {
     if (window.history.state?.idx > 0) {
@@ -122,10 +240,15 @@ export default function SeriesDetails() {
 
   const fav = isFavorite(series.id)
   const later = isInWatchlist(series.id)
+  const watching = isWatching(series.id)
+
   const poster = posterUrl(series.poster_path, 'w500')
   const backdrop = posterUrl(series.backdrop_path, 'w780')
   const year = series.first_air_date?.slice(0, 4)
-  const creators = series.created_by?.map((creator) => creator.name).join(', ')
+
+  const creators = series.created_by
+    ?.map((creator) => creator.name)
+    .join(', ')
 
   const availableGroups = PROVIDER_GROUPS.filter(
     ([key]) => providers?.[key]?.length > 0
@@ -160,7 +283,9 @@ export default function SeriesDetails() {
 
             {series.original_name &&
               series.original_name !== series.name && (
-                <p className="details-original">{series.original_name}</p>
+                <p className="details-original">
+                  {series.original_name}
+                </p>
               )}
 
             {series.tagline && (
@@ -194,38 +319,105 @@ export default function SeriesDetails() {
               ))}
             </ul>
 
-            <div className="detail-actions">
-              <button
-                className={`detail-btn ${fav ? 'on' : ''}`}
-                onClick={() => toggleFavorite(series)}
-                aria-pressed={fav}
-              >
-                {fav ? '♥ En favoritos' : '♡ Agregar a favoritos'}
-              </button>
+            <div className="details-description">
+              <h2 className="section-title">Sinopsis</h2>
 
-              <button
-                className={`detail-btn ${later ? 'on' : ''}`}
-                onClick={() => toggleWatchlist(series)}
-                aria-pressed={later}
-              >
-                {later ? '✓ En Quiero ver' : '+ Quiero ver'}
-              </button>
+              <p className="details-overview">
+                {series.overview ||
+                  'Todavía no hay sinopsis disponible en español para esta serie.'}
+              </p>
+
+              {creators && (
+                <p className="card-meta">Creada por {creators}</p>
+              )}
+            </div>
+
+            <div className="details-platforms">
+              <h2 className="section-title">Dónde verla</h2>
+
+              {availableGroups.length > 0 ? (
+                <>
+                  {availableGroups.map(([key, label]) => (
+                    <div key={key} className="provider-group">
+                      <h3 className="provider-label">{label}</h3>
+
+                      <ul className="providers">
+                        {providers[key].map((provider) => (
+                          <li key={provider.provider_id}>
+                            <img
+                              src={posterUrl(provider.logo_path, 'w92')}
+                              alt={provider.provider_name}
+                              title={provider.provider_name}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+
+                  {providers.link && (
+                    <p className="card-meta">
+                      Datos de JustWatch vía TMDB.{' '}
+                      <a
+                        className="text-link"
+                        href={providers.link}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Ver todas las opciones
+                      </a>
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="empty">
+                  No tenemos información de plataformas para tu región.
+                </p>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="details-section">
-        <h2 className="section-title">Sinopsis</h2>
+      <section className="details-section detail-actions-section">
+        <h2 className="section-title">Tu biblioteca</h2>
 
-        <p className="details-overview">
-          {series.overview ||
-            'Todavía no hay sinopsis disponible en español para esta serie.'}
-        </p>
+        <div className="detail-actions detail-actions-centered">
+          <button
+            className={`detail-btn ${fav ? 'on' : ''}`}
+            onClick={() => toggleFavorite(series)}
+            aria-pressed={fav}
+          >
+            {fav ? '♥ En favoritos' : '♡ Agregar a favoritos'}
+          </button>
 
-        {creators && (
-          <p className="card-meta">Creada por {creators}</p>
-        )}
+          <button
+            className={`detail-btn ${later ? 'on' : ''}`}
+            onClick={() => toggleWatchlist(series)}
+            aria-pressed={later}
+          >
+            {later ? '✓ En Quiero ver' : '+ Quiero ver'}
+          </button>
+
+          <button
+            className={`detail-btn ${watching ? 'on' : ''}`}
+            onClick={() => toggleWatching(series)}
+            aria-pressed={watching}
+          >
+            {watching ? '▶ La estoy viendo' : '▷ La estoy viendo'}
+          </button>
+
+          <button
+            className="detail-btn"
+            type="button"
+            onClick={() => {
+              setReviewError('')
+              setReviewModalOpen(true)
+            }}
+          >
+            ✎ Reseñar
+          </button>
+        </div>
       </section>
 
       {trailer && (
@@ -244,48 +436,150 @@ export default function SeriesDetails() {
         </section>
       )}
 
-      <section className="details-section">
-        <h2 className="section-title">Dónde verla</h2>
+      {reviewMessage && (
+        <p className="message" role="status">
+          {reviewMessage}
+        </p>
+      )}
 
-        {availableGroups.length > 0 ? (
-          <>
-            {availableGroups.map(([key, label]) => (
-              <div key={key} className="provider-group">
-                <h3 className="provider-label">{label}</h3>
+      {reviewError && !reviewModalOpen && (
+        <p className="message error" role="alert">
+          {reviewError}
+        </p>
+      )}
 
-                <ul className="providers">
-                  {providers[key].map((provider) => (
-                    <li key={provider.provider_id}>
-                      <img
-                        src={posterUrl(provider.logo_path, 'w92')}
-                        alt={provider.provider_name}
-                        title={provider.provider_name}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+      {reviewModalOpen && (
+        <div
+          className="review-modal-overlay"
+          onClick={() => {
+            if (!reviewLoading) setReviewModalOpen(false)
+          }}
+        >
+          <div
+            className="review-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="review-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="review-modal-close"
+              type="button"
+              onClick={() => {
+                if (!reviewLoading) setReviewModalOpen(false)
+              }}
+              aria-label="Cerrar ventana"
+              disabled={reviewLoading}
+            >
+              ✕
+            </button>
 
-            {providers.link && (
-              <p className="card-meta">
-                Datos de JustWatch vía TMDB.{' '}
-                <a
-                  className="text-link"
-                  href={providers.link}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Ver todas las opciones
-                </a>
+            <h2 id="review-modal-title">
+              Reseñar {series.name}
+            </h2>
+
+            <p>Compartí tu opinión sobre esta serie.</p>
+
+            <form
+              className="review-form"
+              onSubmit={handleReviewSubmit}
+            >
+              <label htmlFor="review-rating">
+                Tu puntuación
+              </label>
+
+              <select
+                id="review-rating"
+                value={reviewRating}
+                onChange={(event) =>
+                  setReviewRating(Number(event.target.value))
+                }
+                disabled={reviewLoading}
+              >
+                <option value={5}>★★★★★ — Excelente</option>
+                <option value={4}>★★★★☆ — Muy buena</option>
+                <option value={3}>★★★☆☆ — Buena</option>
+                <option value={2}>★★☆☆☆ — Regular</option>
+                <option value={1}>★☆☆☆☆ — No me gustó</option>
+              </select>
+
+              <label htmlFor="review-text">
+                Tu reseña
+              </label>
+
+              <textarea
+                id="review-text"
+                value={reviewText}
+                onChange={(event) => setReviewText(event.target.value)}
+                placeholder={`¿Qué te pareció ${series.name}?`}
+                maxLength={1000}
+                rows={5}
+                required
+                disabled={reviewLoading}
+              />
+
+              <p className="review-counter">
+                {reviewText.length}/1000 caracteres
               </p>
-            )}
-          </>
-        ) : (
-          <p className="empty">
-            No tenemos información de plataformas para tu región.
-          </p>
-        )}
+
+              {reviewError && (
+                <p className="message error" role="alert">
+                  {reviewError}
+                </p>
+              )}
+
+              <button
+                className="detail-btn on"
+                type="submit"
+                disabled={reviewLoading}
+              >
+                {reviewLoading ? 'Publicando…' : 'Publicar reseña'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <section className="details-section reviews-section">
+        <h2 className="section-title">Reseñas de la comunidad</h2>
+
+        <div className="reviews-list">
+          {reviews.length === 0 ? (
+            <p className="empty">
+              Todavía no hay reseñas para esta serie. ¡Podés ser la
+              primera persona en compartir tu opinión!
+            </p>
+          ) : (
+            reviews.map((review) => (
+              <article className="review-card" key={review.id}>
+                <div className="review-card-header">
+                  <span className="review-rating">
+                    {'★'.repeat(review.rating)}
+                    {'☆'.repeat(5 - review.rating)}
+                  </span>
+
+                  {review.userId === currentUserId && (
+                    <button
+                      className="review-delete"
+                      type="button"
+                      onClick={() => handleReviewDelete(review.id)}
+                    >
+                      Eliminar mi reseña
+                    </button>
+                  )}
+                </div>
+
+                <p className="review-text">{review.text}</p>
+
+                <p className="review-author">
+                  {review.userId === currentUserId
+                    ? 'Tu reseña'
+                    : 'Miembro de la comunidad'}
+                </p>
+              </article>
+            ))
+          )}
+        </div>
       </section>
     </>
   )
