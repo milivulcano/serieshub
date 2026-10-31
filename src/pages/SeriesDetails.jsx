@@ -30,6 +30,16 @@ const PROVIDER_GROUPS = [
   ['buy', 'Compra'],
 ]
 
+// Devuelve la fecha actual usando la zona horaria local.
+function getTodayDate() {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 function pickTrailer(videos) {
   const youtube = videos.filter((video) => video.site === 'YouTube')
 
@@ -71,6 +81,10 @@ export default function SeriesDetails() {
   const [reviewMessage, setReviewMessage] = useState('')
   const [currentUserId, setCurrentUserId] = useState('')
   const [editingReviewId, setEditingReviewId] = useState(null)
+  const [reviewDate, setReviewDate] = useState(getTodayDate)
+
+  // Estado temporal del corazón dentro del formulario.
+  const [reviewFavorite, setReviewFavorite] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -143,6 +157,11 @@ export default function SeriesDetails() {
     setEditingReviewId(null)
     setReviewRating(0)
     setReviewText('')
+    setReviewDate(getTodayDate())
+
+    // Copiamos el estado actual de favoritos al formulario.
+    setReviewFavorite(isFavorite(series.id))
+
     setReviewError('')
     setReviewMessage('')
     setReviewModalOpen(true)
@@ -152,6 +171,11 @@ export default function SeriesDetails() {
     setEditingReviewId(review.id)
     setReviewRating(review.rating)
     setReviewText(review.text)
+    setReviewDate(review.watchedAt || getTodayDate())
+
+    // Al editar, mostramos el estado actual de favoritos.
+    setReviewFavorite(isFavorite(series.id))
+
     setReviewError('')
     setReviewMessage('')
     setReviewModalOpen(true)
@@ -164,6 +188,8 @@ export default function SeriesDetails() {
     setEditingReviewId(null)
     setReviewRating(0)
     setReviewText('')
+    setReviewDate(getTodayDate())
+    setReviewFavorite(false)
     setReviewError('')
   }
 
@@ -188,6 +214,16 @@ export default function SeriesDetails() {
       return
     }
 
+    if (!reviewDate) {
+      setReviewError('Seleccioná la fecha en que viste la serie.')
+      return
+    }
+
+    if (reviewDate > getTodayDate()) {
+      setReviewError('La fecha no puede ser posterior al día de hoy.')
+      return
+    }
+
     setReviewLoading(true)
 
     try {
@@ -196,26 +232,38 @@ export default function SeriesDetails() {
         seriesName: series.name,
         rating: reviewRating,
         text: reviewText,
+        watchedAt: reviewDate,
       }
 
       if (editingReviewId) {
-          await updateReview(editingReviewId, reviewData)
-        } else {
-          await createReview(reviewData)
-        }
+        await updateReview(editingReviewId, reviewData)
+      } else {
+        await createReview(reviewData)
+      }
 
-        // Si la serie todavía no está marcada como vista,
-        // la agregamos automáticamente a "Ya la vi".
-        if (!isWatched(series.id)) {
-          await toggleWatched(series)
-        }
+      // Aplicamos el cambio de favoritos recién después
+      // de guardar correctamente la reseña.
+      const currentFavorite = isFavorite(series.id)
+
+      if (reviewFavorite !== currentFavorite) {
+        toggleFavorite(series)
+      }
+
+      // Si la serie todavía no está marcada como vista,
+      // la agregamos automáticamente a "Ya la vi".
+      if (!isWatched(series.id)) {
+        await toggleWatched(series)
+      }
 
       const updatedReviews = await getSeriesReviews(series.id)
       setReviews(updatedReviews)
       setReviewModalOpen(false)
       setEditingReviewId(null)
       setReviewText('')
+      setReviewDate(getTodayDate())
       setReviewRating(0)
+      setReviewFavorite(false)
+
       setReviewMessage(
         editingReviewId
           ? '¡Tu reseña se actualizó correctamente!'
@@ -446,7 +494,7 @@ export default function SeriesDetails() {
             title={watched ? 'Quitar de Ya la vi' : 'Marcar como vista'}
           >
             <span aria-hidden="true">{watched ? '◉' : '◎'}</span>
-            {watched ? 'Ya la vi' : 'Ya la vi'}
+            Ya la vi
           </button>
 
           <button
@@ -547,98 +595,135 @@ export default function SeriesDetails() {
               ✕
             </button>
 
-            <h2 id="review-modal-title">
-              {editingReviewId ? 'Editar reseña' : 'Reseñar'} {series.name}
-            </h2>
-
-            <p>Compartí tu opinión sobre esta serie.</p>
-
-            <form
-              className="review-form"
-              onSubmit={handleReviewSubmit}
-            >
-              <label id="review-rating-label">
-                Tu puntuación
-              </label>
-
-              <div
-                className="review-rating-row"
-                role="group"
-                aria-labelledby="review-rating-label"
-              >
-                <div className="review-star-selector">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={`review-star-button ${
-                        star <= reviewRating ? 'selected' : ''
-                      }`}
-                      onClick={() => setReviewRating(star)}
-                      disabled={reviewLoading}
-                      aria-label={`${star} de 5 estrellas`}
-                      aria-pressed={reviewRating === star}
-                    >
-                      {star <= reviewRating ? '★' : '☆'}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  className={`review-favorite-button ${
-                    fav ? 'on' : ''
-                  }`}
-                  onClick={() => toggleFavorite(series)}
-                  aria-label={
-                    fav
-                      ? 'Quitar serie de favoritos'
-                      : 'Agregar serie a favoritos'
-                  }
-                  aria-pressed={fav}
-                  title={fav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                >
-                  {fav ? '♥' : '♡'}
-                </button>
+            <div className="review-modal-layout">
+              <div className="review-modal-poster">
+                {poster ? (
+                  <img
+                    src={poster}
+                    alt={`Póster de ${series.name}`}
+                  />
+                ) : (
+                  <div className="no-poster">Sin póster</div>
+                )}
               </div>
 
-              <label htmlFor="review-text">
-                Tu reseña
-              </label>
+              <div className="review-modal-content">
+                <h2 id="review-modal-title">
+                  {series.name}
+                  {year && (
+                    <span className="details-year"> ({year})</span>
+                  )}
+                </h2>
 
-              <textarea
-                id="review-text"
-                value={reviewText}
-                onChange={(event) => setReviewText(event.target.value)}
-                placeholder={`¿Qué te pareció ${series.name}?`}
-                maxLength={1000}
-                rows={5}
-                required
-                disabled={reviewLoading}
-              />
+                <form
+                  className="review-form"
+                  onSubmit={handleReviewSubmit}
+                >
+                  <div
+                    className="review-rating-row"
+                    role="group"
+                    aria-label="Tu puntuación"
+                  >
+                    <div className="review-star-selector">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          className={`review-star-button ${
+                            star <= reviewRating ? 'selected' : ''
+                          }`}
+                          onClick={() => setReviewRating(star)}
+                          disabled={reviewLoading}
+                          aria-label={`${star} de 5 estrellas`}
+                          aria-pressed={reviewRating === star}
+                        >
+                          {star <= reviewRating ? '★' : '☆'}
+                        </button>
+                      ))}
+                    </div>
 
-              <p className="review-counter">
-                {reviewText.length}/1000 caracteres
-              </p>
+                    <button
+                      type="button"
+                      className={`review-favorite-button ${
+                        reviewFavorite ? 'on' : ''
+                      }`}
+                      onClick={() =>
+                        setReviewFavorite((current) => !current)
+                      }
+                      aria-label={
+                        reviewFavorite
+                          ? 'Quitar serie de favoritos'
+                          : 'Agregar serie a favoritos'
+                      }
+                      aria-pressed={reviewFavorite}
+                      title={
+                        reviewFavorite
+                          ? 'Quitar de favoritos'
+                          : 'Agregar a favoritos'
+                      }
+                      disabled={reviewLoading}
+                    >
+                      {reviewFavorite ? '♥' : '♡'}
+                    </button>
+                  </div>
 
-              {reviewError && (
-                <p className="message error" role="alert">
-                  {reviewError}
-                </p>
-              )}
+                  <label htmlFor="review-text">
+                    Tu reseña
+                  </label>
 
-              <button
-                className="detail-btn on"
-                type="submit"
-                disabled={reviewLoading}
-              >
-                {reviewLoading
-                  ? 'Guardando…'
-                  : editingReviewId
-                    ? 'Guardar cambios'
-                    : 'Publicar reseña'}
-              </button>
-            </form>
+                  <textarea
+                    id="review-text"
+                    value={reviewText}
+                    onChange={(event) =>
+                      setReviewText(event.target.value)
+                    }
+                    placeholder={`¿Qué te pareció ${series.name}?`}
+                    maxLength={1000}
+                    rows={5}
+                    required
+                    disabled={reviewLoading}
+                  />
+
+                  <p className="review-counter">
+                    {reviewText.length}/1000 caracteres
+                  </p>
+
+                  <div className="review-date-field">
+                    <label htmlFor="reviewDate">Vista el</label>
+
+                    <input
+                      id="reviewDate"
+                      type="date"
+                      value={reviewDate}
+                      max={getTodayDate()}
+                      onChange={(event) =>
+                        setReviewDate(event.target.value)
+                      }
+                      required
+                      disabled={reviewLoading}
+                    />
+                  </div>
+
+                  {reviewError && (
+                    <p className="message error" role="alert">
+                      {reviewError}
+                    </p>
+                  )}
+
+                  <button
+                    className="detail-btn on"
+                    type="submit"
+                    disabled={reviewLoading}
+                  >
+                    {reviewLoading
+                      ? 'Guardando…'
+                      : editingReviewId
+                        ? 'Guardar cambios'
+                        : 'Publicar reseña'}
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -656,12 +741,26 @@ export default function SeriesDetails() {
             reviews.map((review) => (
               <article className="review-card" key={review.id}>
                 <div className="review-card-header">
-                  <span
-                    className="review-rating"
-                    aria-label={`${review.rating} de 5 estrellas`}
-                  >
-                    {'★'.repeat(review.rating)}
-                  </span>
+                  <div className="review-card-rating">
+                    <span
+                      className="review-rating"
+                      aria-label={`${review.rating} de 5 estrellas`}
+                    >
+                      {'★'.repeat(review.rating)}
+                    </span>
+
+                    {review.watchedAt && (
+                      <p className="review-date">
+                        {new Date(
+                          `${review.watchedAt}T12:00:00`
+                        ).toLocaleDateString('es-AR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    )}
+                  </div>
 
                   {review.userId === currentUserId && (
                     <div className="review-card-actions">

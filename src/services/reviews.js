@@ -72,6 +72,7 @@ export async function createReview({
   seriesName,
   rating,
   text,
+  watchedAt,
 }) {
   const credential = await authReady
 
@@ -84,6 +85,7 @@ export async function createReview({
 
   const review = {
     ...normalized,
+    watchedAt,
     userId: credential.user.uid,
     createdAt: serverTimestamp(),
   }
@@ -93,12 +95,13 @@ export async function createReview({
   return reviewRef.id
 }
 
-// Actualiza la puntuación y el texto de una reseña existente.
+// Actualiza la puntuación, el texto y la fecha de una reseña existente.
 export async function updateReview(reviewId, {
   seriesId,
   seriesName,
   rating,
   text,
+  watchedAt,
 }) {
   await authReady
 
@@ -109,7 +112,10 @@ export async function updateReview(reviewId, {
     text,
   })
 
-  await updateDoc(doc(db, 'reviews', reviewId), normalized)
+  await updateDoc(doc(db, 'reviews', reviewId), {
+    ...normalized,
+    watchedAt,
+  })
 }
 
 // Elimina una reseña.
