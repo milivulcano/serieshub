@@ -2,18 +2,24 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import {
+  getSeriesDetails,
   posterUrl,
   profileUrl,
   searchPeople,
   searchSeries,
 } from '../services/tmdb'
+
 import { getProfile, saveProfile } from '../services/profile'
 import SeriesCard from '../components/SeriesCard'
-
 import { useLists } from '../context/ListsContext'
 import ProfileListSection from '../components/ProfileListSection'
+import RecentActivity from '../components/RecentActivity'
 
-import { getUserReviews } from '../services/reviews'
+import {
+  getUserReviews,
+  updateReview,
+  deleteReview,
+} from '../services/reviews'
 
 const tabs = [
   { id: 'perfil', label: 'Perfil' },
@@ -28,14 +34,36 @@ const validTabs = tabs.map((tab) => tab.id)
 const DEFAULT_USERNAME = 'Usuario de SeriesHub'
 const MAX_TOP_FAVORITES = 4
 
+function getTodayDate() {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function formatWatchedDate(date) {
+  if (!date) return ''
+
+  return new Date(`${date}T12:00:00`).toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
 export default function Profile() {
-    const {
+  const {
     favorites,
+    isFavorite,
+    toggleFavorite,
     watchlist,
     watching,
     watched,
     ready,
   } = useLists()
+
   const [profile, setProfile] = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -72,6 +100,18 @@ export default function Profile() {
   const [reviewsReady, setReviewsReady] = useState(false)
   const [reviewsError, setReviewsError] = useState('')
 
+  // Estados para editar reseñas desde Actividad.
+  const [editingReview, setEditingReview] = useState(null)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewDate, setReviewDate] = useState(getTodayDate())
+  const [reviewSaving, setReviewSaving] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const [reviewFavorite, setReviewFavorite] = useState(false)
+  const [reviewSeries, setReviewSeries] = useState(null)
+  const [reviewSeriesLoading, setReviewSeriesLoading] = useState(false)
+  const [reviewSeriesError, setReviewSeriesError] = useState('')
+
   useEffect(() => {
     let active = true
 
@@ -97,9 +137,7 @@ export default function Profile() {
           setError('No pudimos cargar tu perfil. Intentá nuevamente.')
         }
       } finally {
-        if (active) {
-          setLoading(false)
-        }
+        if (active) setLoading(false)
       }
     }
 
@@ -203,34 +241,63 @@ export default function Profile() {
   }, [seriesQuery, activeSlot, editing])
 
   useEffect(() => {
-  let active = true
+    let active = true
 
-  async function loadReviews() {
-    try {
-      const data = await getUserReviews()
+    async function loadReviews() {
+      try {
+        const data = await getUserReviews()
 
-      if (active) {
-        setReviews(data)
-      }
-    } catch (error) {
-      console.error('Error al cargar las reseñas:', error)
+        if (active) {
+          setReviews(data)
+          setReviewsError('')
+        }
+      } catch (err) {
+        console.error('Error al cargar las reseñas:', err)
 
-      if (active) {
-        setReviewsError('No se pudieron cargar tus reseñas.')
-      }
-    } finally {
-      if (active) {
-        setReviewsReady(true)
+        if (active) {
+          setReviewsError('No se pudieron cargar tus reseñas.')
+        }
+      } finally {
+        if (active) setReviewsReady(true)
       }
     }
-  }
 
-  loadReviews()
+    loadReviews()
 
-  return () => {
-    active = false
-  }
-}, [])
+    return () => {
+      active = false
+    }
+  }, [])
+
+  // Traemos los detalles desde TMDB para mostrar el póster y el año.
+  // También necesitamos los datos completos para agregar la serie a Favoritos.
+  useEffect(() => {
+    if (!editingReview) return
+
+    const controller = new AbortController()
+
+    setReviewSeries(null)
+    setReviewSeriesLoading(true)
+    setReviewSeriesError('')
+
+    getSeriesDetails(editingReview.seriesId, controller.signal)
+      .then((details) => {
+        if (!controller.signal.aborted) setReviewSeries(details)
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          console.error('Error al cargar la serie de la reseña:', err)
+          setReviewSeriesError(
+            'No pudimos cargar la información de la serie desde TMDB.'
+          )
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setReviewSeriesLoading(false)
+      })
+
+    return () => controller.abort()
+  }, [editingReview])
 
   function selectTab(tabId) {
     setSuccess('')
@@ -415,6 +482,138 @@ export default function Profile() {
     }
   }
 
+  function openEditReview(review) {
+    setEditingReview(review)
+    setReviewRating(review.rating)
+    setReviewText(review.text)
+    setReviewDate(review.watchedAt || getTodayDate())
+    setReviewFavorite(isFavorite(review.seriesId))
+    setReviewError('')
+    setSuccess('')
+  }
+
+  function resetReviewEditor() {
+    setEditingReview(null)
+    setReviewRating(0)
+    setReviewText('')
+    setReviewDate(getTodayDate())
+    setReviewFavorite(false)
+    setReviewSeries(null)
+    setReviewSeriesError('')
+    setReviewError('')
+  }
+
+  function closeEditReview() {
+    if (reviewSaving) return
+    resetReviewEditor()
+  }
+
+  async function handleUpdateReview(event) {
+    event.preventDefault()
+    setReviewError('')
+
+    if (!reviewText.trim()) {
+      setReviewError('Escribí tu reseña antes de guardar.')
+      return
+    }
+
+    if (reviewText.trim().length > 1000) {
+      setReviewError('La reseña no puede superar los 1000 caracteres.')
+      return
+    }
+
+    if (reviewRating < 1 || reviewRating > 5) {
+      setReviewError('Elegí una puntuación entre 1 y 5 estrellas.')
+      return
+    }
+
+    if (!reviewDate) {
+      setReviewError('Seleccioná la fecha en que viste la serie.')
+      return
+    }
+
+    if (reviewDate > getTodayDate()) {
+      setReviewError('La fecha no puede ser posterior al día de hoy.')
+      return
+    }
+
+    const currentlyFavorite = isFavorite(editingReview.seriesId)
+
+    if (reviewFavorite && !currentlyFavorite && !reviewSeries) {
+      setReviewError(
+        'No pudimos cargar la serie para agregarla a Favoritos. Intentá cerrar y abrir nuevamente el editor.'
+      )
+      return
+    }
+
+    setReviewSaving(true)
+
+    try {
+      await updateReview(editingReview.id, {
+        seriesId: editingReview.seriesId,
+        seriesName: editingReview.seriesName,
+        rating: reviewRating,
+        text: reviewText,
+        watchedAt: reviewDate,
+      })
+
+      // Igual que en SeriesDetails: el corazón se aplica al guardar.
+      if (reviewFavorite !== currentlyFavorite) {
+        const seriesToToggle = currentlyFavorite
+          ? favorites.find((series) => series.id === editingReview.seriesId)
+          : reviewSeries
+
+        if (seriesToToggle) {
+          await toggleFavorite(seriesToToggle)
+        }
+      }
+
+      const updatedReviews = await getUserReviews()
+      setReviews(updatedReviews)
+
+      resetReviewEditor()
+      setSuccess('¡Tu reseña se actualizó correctamente!')
+    } catch (err) {
+      console.error('Error al actualizar la reseña:', err)
+      setReviewError(
+        'No se pudo completar la actualización. Revisá tu conexión e intentá nuevamente.'
+      )
+    } finally {
+      setReviewSaving(false)
+    }
+  }
+
+  async function handleDeleteReview(reviewId) {
+    const confirmed = window.confirm(
+      '¿Seguro que querés eliminar tu reseña? Esta acción no se puede deshacer.'
+    )
+
+    if (!confirmed) return
+
+    setReviewsErrorForDelete('')
+
+    try {
+      await deleteReview(reviewId)
+
+      setReviews((current) =>
+        current.filter((review) => review.id !== reviewId)
+      )
+
+      setSuccess('La reseña se eliminó correctamente.')
+    } catch (err) {
+      console.error('Error al eliminar la reseña:', err)
+      setReviewsErrorForDelete(
+        'No se pudo eliminar la reseña. Intentá nuevamente.'
+      )
+    }
+  }
+
+  const [deleteError, setDeleteError] = useState('')
+
+  function setReviewsErrorForDelete(message) {
+    setDeleteError(message)
+  }
+
   if (loading) {
     return <p className="message">Cargando tu perfil…</p>
   }
@@ -577,9 +776,7 @@ export default function Profile() {
                 <p className="message">Buscando personas…</p>
               )}
 
-              {peopleError && (
-                <p className="error">{peopleError}</p>
-              )}
+              {peopleError && <p className="error">{peopleError}</p>}
 
               {!searchingPeople &&
                 peopleQuery.trim().length >= 2 &&
@@ -718,9 +915,7 @@ export default function Profile() {
                     <p className="message">Buscando series…</p>
                   )}
 
-                  {seriesError && (
-                    <p className="error">{seriesError}</p>
-                  )}
+                  {seriesError && <p className="error">{seriesError}</p>}
 
                   {!searchingSeries &&
                     seriesQuery.trim().length >= 2 &&
@@ -818,10 +1013,7 @@ export default function Profile() {
 
                 <div className="profile-top-favorites-grid">
                   {profile.topFavorites.map((series) => (
-                    <SeriesCard
-                      key={series.id}
-                      series={series}
-                    />
+                    <SeriesCard key={series.id} series={series} />
                   ))}
                 </div>
               </section>
@@ -836,88 +1028,292 @@ export default function Profile() {
                 </p>
               </div>
             )}
+
+            <RecentActivity
+              reviews={reviews}
+              favorites={favorites}
+              watched={watched}
+              loading={!reviewsReady}
+              error={reviewsError}
+              onViewAll={() => selectTab('actividad')}
+            />
           </div>
         )}
 
         {activeTab === 'actividad' && (
-  <section>
-    <h2 className="section-title">Actividad</h2>
+          <section>
+            <h2 className="section-title">Actividad</h2>
 
-    {!reviewsReady && (
-      <p className="empty">Cargando tus reseñas...</p>
-    )}
-
-    {reviewsReady && reviewsError && (
-      <p className="empty">{reviewsError}</p>
-    )}
-
-    {reviewsReady && !reviewsError && reviews.length === 0 && (
-      <p className="empty">
-        Todavía no publicaste ninguna reseña.
-      </p>
-    )}
-
-    {reviewsReady && !reviewsError && reviews.length > 0 && (
-      <div className="reviews-list">
-        {reviews.map((review) => (
-          <article className="review-card" key={review.id}>
-            <h3>{review.seriesName}</h3>
-
-            <p className="review-rating">
-              {'★'.repeat(review.rating)}
-              {'☆'.repeat(5 - review.rating)}
-            </p>
-
-            <p>{review.text}</p>
-
-            {review.createdAt?.toDate && (
-              <small>
-                Publicada el{' '}
-                {review.createdAt.toDate().toLocaleDateString('es-AR')}
-              </small>
-            )}
-          </article>
-        ))}
-      </div>
-    )}
-  </section>
-)}
-
-            {activeTab === 'series' && (
-            <ProfileListSection
-                title="Mis series"
-                series={watched}
-                ready={ready}
-                emptyMessage="Todavía no marcaste series como vistas."
-            />
+            {!reviewsReady && (
+              <p className="empty">Cargando tus reseñas...</p>
             )}
 
-            {activeTab === 'pendientes' && (
-            <ProfileListSection
-                title="Pendientes"
-                series={watchlist}
-                ready={ready}
-                emptyMessage="Todavía no agregaste series a tu lista de pendientes."
-            />
+            {reviewsReady && reviewsError && (
+              <p className="empty">{reviewsError}</p>
             )}
 
-            {activeTab === 'viendo' && (
-            <ProfileListSection
-                title="Viendo"
-                series={watching}
-                ready={ready}
-                emptyMessage="Todavía no agregaste series a esta lista."
-            />
+            {deleteError && (
+              <p className="message error" role="alert">
+                {deleteError}
+              </p>
             )}
 
-            {activeTab === 'favoritos' && (
-            <ProfileListSection
-                title="Favoritos"
-                series={favorites}
-                ready={ready}
-                emptyMessage="Todavía no agregaste series a tus favoritos."
-            />
+            {reviewsReady && !reviewsError && reviews.length === 0 && (
+              <p className="empty">
+                Todavía no publicaste ninguna reseña.
+              </p>
             )}
+
+            {reviewsReady && !reviewsError && reviews.length > 0 && (
+              <div className="reviews-list">
+                {reviews.map((review) => (
+                  <article className="review-card" key={review.id}>
+                    <div className="review-card-header">
+                      <div className="review-card-rating">
+                        <span
+                          className="review-rating"
+                          aria-label={`${review.rating} de 5 estrellas`}
+                        >
+                          {'★'.repeat(review.rating)}
+                        </span>
+
+                        {review.watchedAt && (
+                          <p className="review-date">
+                            Vista el {formatWatchedDate(review.watchedAt)}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="review-card-actions">
+                        <button
+                          className="review-icon-button"
+                          type="button"
+                          onClick={() => openEditReview(review)}
+                          aria-label="Editar mi reseña"
+                          title="Editar reseña"
+                        >
+                          ✎
+                        </button>
+
+                        <button
+                          className="review-icon-button review-delete"
+                          type="button"
+                          onClick={() => handleDeleteReview(review.id)}
+                          aria-label="Eliminar mi reseña"
+                          title="Eliminar reseña"
+                        >
+                          ♲
+                        </button>
+                      </div>
+                    </div>
+
+                    <h3>{review.seriesName}</h3>
+                    <p className="review-text">{review.text}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {editingReview && (
+              <div
+                className="review-modal-overlay"
+                onClick={closeEditReview}
+              >
+                <div
+                  className="review-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="profile-review-modal-title"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <button
+                    className="review-modal-close"
+                    type="button"
+                    onClick={closeEditReview}
+                    aria-label="Cerrar ventana"
+                    disabled={reviewSaving}
+                  >
+                    ✕
+                  </button>
+
+                  <div className="review-modal-layout">
+                    <div className="review-modal-poster">
+                      {reviewSeries?.poster_path ? (
+                        <img
+                          src={posterUrl(reviewSeries.poster_path, 'w500')}
+                          alt={`Póster de ${editingReview.seriesName}`}
+                        />
+                      ) : (
+                        <div className="no-poster">
+                          {reviewSeriesLoading ? 'Cargando póster…' : 'Sin póster'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="review-modal-content">
+                      <h2 id="profile-review-modal-title">
+                        {editingReview.seriesName}
+                        {reviewSeries?.first_air_date && (
+                          <span className="details-year">
+                            {' '}({reviewSeries.first_air_date.slice(0, 4)})
+                          </span>
+                        )}
+                      </h2>
+
+                      <form
+                        className="review-form"
+                        onSubmit={handleUpdateReview}
+                      >
+                        <div
+                          className="review-rating-row"
+                          role="group"
+                          aria-label="Tu puntuación"
+                        >
+                          <div className="review-star-selector">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                className={`review-star-button ${
+                                  star <= reviewRating ? 'selected' : ''
+                                }`}
+                                onClick={() => setReviewRating(star)}
+                                disabled={reviewSaving}
+                                aria-label={`${star} de 5 estrellas`}
+                                aria-pressed={reviewRating === star}
+                              >
+                                {star <= reviewRating ? '★' : '☆'}
+                              </button>
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            className={`review-favorite-button ${
+                              reviewFavorite ? 'on' : ''
+                            }`}
+                            onClick={() =>
+                              setReviewFavorite((current) => !current)
+                            }
+                            aria-label={
+                              reviewFavorite
+                                ? 'Quitar serie de favoritos'
+                                : 'Agregar serie a favoritos'
+                            }
+                            aria-pressed={reviewFavorite}
+                            title={
+                              reviewFavorite
+                                ? 'Quitar de favoritos'
+                                : 'Agregar a favoritos'
+                            }
+                            disabled={reviewSaving || reviewSeriesLoading}
+                          >
+                            {reviewFavorite ? '♥' : '♡'}
+                          </button>
+                        </div>
+
+                        <label htmlFor="profile-review-text">
+                          Tu reseña
+                        </label>
+
+                        <textarea
+                          id="profile-review-text"
+                          value={reviewText}
+                          onChange={(event) =>
+                            setReviewText(event.target.value)
+                          }
+                          placeholder={`¿Qué te pareció ${editingReview.seriesName}?`}
+                          maxLength={1000}
+                          rows={5}
+                          required
+                          disabled={reviewSaving}
+                        />
+
+                        <p className="review-counter">
+                          {reviewText.length}/1000 caracteres
+                        </p>
+
+                        <div className="review-date-field">
+                          <label htmlFor="profile-review-date">
+                            Vista el
+                          </label>
+
+                          <input
+                            id="profile-review-date"
+                            type="date"
+                            value={reviewDate}
+                            max={getTodayDate()}
+                            onChange={(event) =>
+                              setReviewDate(event.target.value)
+                            }
+                            required
+                            disabled={reviewSaving}
+                          />
+                        </div>
+
+                        {reviewSeriesError && (
+                          <p className="message error" role="status">
+                            {reviewSeriesError}
+                          </p>
+                        )}
+
+                        {reviewError && (
+                          <p className="message error" role="alert">
+                            {reviewError}
+                          </p>
+                        )}
+
+                        <button
+                          className="detail-btn on"
+                          type="submit"
+                          disabled={reviewSaving || reviewSeriesLoading}
+                        >
+                          {reviewSaving ? 'Guardando…' : 'Guardar cambios'}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'series' && (
+          <ProfileListSection
+            title="Mis series"
+            series={watched}
+            ready={ready}
+            emptyMessage="Todavía no marcaste series como vistas."
+          />
+        )}
+
+        {activeTab === 'pendientes' && (
+          <ProfileListSection
+            title="Pendientes"
+            series={watchlist}
+            ready={ready}
+            emptyMessage="Todavía no agregaste series a tu lista de pendientes."
+          />
+        )}
+
+        {activeTab === 'viendo' && (
+          <ProfileListSection
+            title="Viendo"
+            series={watching}
+            ready={ready}
+            emptyMessage="Todavía no agregaste series a esta lista."
+          />
+        )}
+
+        {activeTab === 'favoritos' && (
+          <ProfileListSection
+            title="Favoritos"
+            series={favorites}
+            ready={ready}
+            emptyMessage="Todavía no agregaste series a tus favoritos."
+          />
+        )}
       </div>
     </section>
   )

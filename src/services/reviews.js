@@ -1,9 +1,11 @@
 import { db, authReady } from '../firebase'
+
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -36,26 +38,59 @@ export async function getSeriesReviews(seriesId) {
   })
 }
 
+// Obtiene una reseña específica por su ID de Firestore.
+export async function getReviewById(reviewId) {
+  await authReady
+
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const snapshot = await getDoc(reviewRef)
+
+  if (!snapshot.exists()) {
+    return null
+  }
+
+  return {
+    id: snapshot.id,
+    ...snapshot.data(),
+  }
+}
+
 // Valida y prepara los datos de una reseña.
-function normalizeReview({ seriesId, seriesName, rating, text }) {
+function normalizeReview({
+  seriesId,
+  seriesName,
+  rating,
+  text,
+}) {
   const normalizedText = text.trim()
   const normalizedRating = Number(rating)
-  const normalizedSeriesName = String(seriesName ?? '').trim()
+  const normalizedSeriesName = String(
+    seriesName ?? ''
+  ).trim()
 
   if (
     !Number.isInteger(normalizedRating) ||
     normalizedRating < 1 ||
     normalizedRating > 5
   ) {
-    throw new Error('La puntuación debe estar entre 1 y 5.')
+    throw new Error(
+      'La puntuación debe estar entre 1 y 5.'
+    )
   }
 
-  if (!normalizedText || normalizedText.length > 1000) {
-    throw new Error('La reseña debe tener entre 1 y 1000 caracteres.')
+  if (
+    !normalizedText ||
+    normalizedText.length > 1000
+  ) {
+    throw new Error(
+      'La reseña debe tener entre 1 y 1000 caracteres.'
+    )
   }
 
   if (!normalizedSeriesName) {
-    throw new Error('No se encontró el nombre de la serie.')
+    throw new Error(
+      'No se encontró el nombre de la serie.'
+    )
   }
 
   return {
@@ -90,12 +125,15 @@ export async function createReview({
     createdAt: serverTimestamp(),
   }
 
-  const reviewRef = await addDoc(reviewsCollection, review)
+  const reviewRef = await addDoc(
+    reviewsCollection,
+    review
+  )
 
   return reviewRef.id
 }
 
-// Actualiza la puntuación, el texto y la fecha de una reseña existente.
+// Actualiza una reseña existente.
 export async function updateReview(reviewId, {
   seriesId,
   seriesName,
@@ -122,15 +160,20 @@ export async function updateReview(reviewId, {
 // Las reglas de Firestore verifican que sea propia.
 export async function deleteReview(reviewId) {
   await authReady
-  return deleteDoc(doc(db, 'reviews', reviewId))
+
+  return deleteDoc(
+    doc(db, 'reviews', reviewId)
+  )
 }
 
 // Devuelve el identificador del usuario actual.
 export async function getCurrentUserId() {
   const credential = await authReady
+
   return credential.user.uid
 }
 
+// Obtiene todas las reseñas del usuario actual.
 export async function getUserReviews() {
   const credential = await authReady
 

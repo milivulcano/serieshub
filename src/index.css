@@ -1023,7 +1023,6 @@ main.container {
 }
 
 /* ===== Menú desplegable de Mi perfil ===== */
-
 .main-nav {
   align-items: center;
 }
@@ -1076,7 +1075,6 @@ main.container {
 }
 
 /* ===== Encabezado del perfil ===== */
-
 .profile-header {
   display: flex;
   align-items: center;
@@ -1117,7 +1115,6 @@ main.container {
 }
 
 /* ===== Pestañas del perfil ===== */
-
 .profile-tabs {
   display: flex;
   gap: 0.4rem;
@@ -1173,7 +1170,6 @@ main.container {
 }
 
 /* ===== Botón de editar perfil ===== */
-
 .profile-edit-button {
   margin-top: 0.8rem;
   padding: 0.55rem 1rem;
@@ -1191,7 +1187,6 @@ main.container {
 }
 
 /* ===== Editor del perfil ===== */
-
 .profile-editor {
   max-width: 700px;
   margin: 1.5rem 0 2rem;
@@ -1249,7 +1244,6 @@ main.container {
 }
 
 /* ===== Vista previa del avatar ===== */
-
 .profile-avatar-editor {
   display: flex;
   align-items: center;
@@ -1278,7 +1272,6 @@ main.container {
 }
 
 /* ===== Resultados de búsqueda de personas ===== */
-
 .profile-people-results {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -1330,7 +1323,6 @@ main.container {
 }
 
 /* ===== Botones del editor ===== */
-
 .profile-editor-actions {
   display: flex;
   justify-content: flex-end;
@@ -1363,7 +1355,6 @@ main.container {
 }
 
 /* ===== Mensaje de guardado ===== */
-
 .profile-success {
   margin-block: 1rem;
   color: #8fe0a5;
@@ -1380,7 +1371,6 @@ main.container {
 }
 
 /* ===== Top 4 favoritos del perfil ===== */
-
 .profile-editor-hint {
   color: var(--muted);
   font-size: 0.9rem;
@@ -1510,7 +1500,6 @@ main.container {
 }
 
 /* Búsqueda de series para los Top 4 */
-
 .top-favorite-search {
   margin-top: 1rem;
   padding: 1rem;
@@ -1605,7 +1594,6 @@ main.container {
 }
 
 /* Top 4 en la vista normal del perfil */
-
 .profile-top-favorites {
   margin-bottom: 2rem;
 }
@@ -1657,7 +1645,6 @@ main.container {
 }
 
 /* ===== Ajustes visuales de los Top 4 ===== */
-
 /* Pósters más pequeños en la vista normal del perfil */
 .profile-top-favorites-grid {
   grid-template-columns: repeat(4, minmax(0, 140px));
@@ -1695,5 +1682,351 @@ main.container {
 @media (max-width: 600px) {
   .profile-top-favorites-grid {
     grid-template-columns: repeat(2, minmax(0, 140px));
+  }
+}
+
+/* ===== Acceso rápido para reseñar ===== */
+/* Botón destacado a la derecha de Mi perfil */
+.quick-review-header-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.quick-review-header-button:hover {
+  background: var(--accent);
+  color: #1a1015;
+  transform: translateY(-1px);
+}
+
+.quick-review-header-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Primera etapa: buscador */
+.quick-review-search h2,
+.quick-review-success h2 {
+  margin: 0 2.5rem 0.65rem 0;
+  font-size: 1.65rem;
+}
+
+.quick-review-description {
+  margin-bottom: 1.25rem;
+  color: var(--muted);
+}
+
+/* Lista de resultados */
+.quick-review-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  max-height: 380px;
+  margin-top: 1rem;
+  overflow-y: auto;
+}
+
+.quick-review-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.6rem;
+  border: 1px solid var(--surface-2);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.quick-review-result:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.quick-review-result:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.quick-review-result-poster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 55px;
+  aspect-ratio: 2 / 3;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.quick-review-result-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.quick-review-result-poster span {
+  padding: 0.25rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.quick-review-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.quick-review-result-info strong {
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.quick-review-result-info small {
+  color: var(--muted);
+}
+
+/* Botón para regresar a la búsqueda */
+.quick-review-back-row {
+  margin-bottom: 1rem;
+}
+
+.quick-review-back-row .back-btn {
+  margin-bottom: 0;
+}
+
+/* Confirmación de publicación */
+.quick-review-success {
+  padding: 0.5rem 0;
+}
+
+.quick-review-success > p {
+  margin-bottom: 1rem;
+}
+
+.quick-review-success .detail-btn {
+  margin-top: 0.5rem;
+}
+
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 600px) {
+  .quick-review-results {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-review-header-button {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .header-inner {
+    justify-content: center;
+  }
+
+  .main-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* ===== Actividad reciente del perfil ===== */
+.profile-recent-activity {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.profile-recent-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+  max-width: 608px; /* 4 pósters de 140px + 3 espacios de 16px */
+}
+
+.profile-recent-heading .section-title {
+  margin-block: 0.5rem 1rem;
+}
+
+.profile-recent-view-all {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-recent-view-all:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.profile-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 140px));
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.profile-recent-card {
+  min-width: 0;
+}
+
+.profile-recent-card .poster {
+  aspect-ratio: 2 / 3;
+}
+
+.profile-recent-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+  min-height: 1.5rem;
+}
+
+.profile-recent-meta .review-rating {
+  font-size: 0.92rem;
+  letter-spacing: 0.01rem;
+  white-space: nowrap;
+}
+
+.profile-recent-heart {
+  color: #ff5b82;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .profile-recent-heading {
+    max-width: 292px; /* 2 pósters de 140px + 12px de separación */
+  }
+  .profile-recent-grid {
+    grid-template-columns: repeat(2, minmax(0, 140px));
+    gap: 0.75rem;
+  }
+}
+
+/* ===== Página de detalle de una reseña ===== */
+
+.review-details-page {
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.review-details-card {
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: #171923;
+}
+
+.review-details-title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  line-height: 1.25;
+}
+
+.review-details-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin-bottom: 1.2rem;
+}
+
+.review-details-date span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.review-details-date strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.review-details-rating {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+}
+
+.review-details-rating .review-rating {
+  font-size: 1.6rem;
+  letter-spacing: 0.08rem;
+}
+
+.review-details-heart {
+  color: #ff5b82;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.review-details-text-section {
+  padding-top: 1rem;
+  border-top: 1px solid var(--surface-2);
+}
+
+.review-details-text-section h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+}
+
+.review-details-text-section .review-text {
+  margin: 0;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .review-details-card {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-details-card {
+    padding: 1rem;
+  }
+
+  .review-details-title {
+    text-align: center;
+  }
+
+  .review-details-rating {
+    justify-content: center;
   }
 }

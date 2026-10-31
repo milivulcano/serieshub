@@ -1,10 +1,16 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from 'react-router-dom'
 
 import { ListsProvider } from './context/ListsContext'
 import Header from './components/Header'
 
 import Home from './pages/Home'
 import SeriesDetails from './pages/SeriesDetails'
+import ReviewDetails from './pages/ReviewDetails'
+
 import Watchlist from './pages/Watchlist'
 import Favorites from './pages/Favorites'
 import Watching from './pages/Watching'
@@ -19,15 +25,45 @@ export default function App() {
 
         <main className="container">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/serie/:id" element={<SeriesDetails />} />
+            <Route
+              path="/"
+              element={<Home />}
+            />
 
-            <Route path="/perfil" element={<Profile />} />
+            <Route
+              path="/serie/:id"
+              element={<SeriesDetails />}
+            />
 
-            <Route path="/quiero-ver" element={<Watchlist />} />
-            <Route path="/favoritos" element={<Favorites />} />
-            <Route path="/viendo" element={<Watching />} />
-            <Route path="/ya-la-vi" element={<Watched />} />
+            <Route
+              path="/resena/:reviewId"
+              element={<ReviewDetails />}
+            />
+
+            <Route
+              path="/perfil"
+              element={<Profile />}
+            />
+
+            <Route
+              path="/quiero-ver"
+              element={<Watchlist />}
+            />
+
+            <Route
+              path="/favoritos"
+              element={<Favorites />}
+            />
+
+            <Route
+              path="/viendo"
+              element={<Watching />}
+            />
+
+            <Route
+              path="/ya-la-vi"
+              element={<Watched />}
+            />
           </Routes>
         </main>
       </ListsProvider>
