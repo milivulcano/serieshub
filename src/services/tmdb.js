@@ -5,9 +5,15 @@ const API_KEY = import.meta.env.VITE_TMDB_API_KEY
 // País para consultar las plataformas donde ver la serie.
 export const WATCH_REGION = 'AR'
 
+// Construye la URL de un póster de serie.
 export const posterUrl = (path, size = 'w342') =>
   path ? `${IMAGE_URL}/${size}${path}` : null
 
+// Construye la URL de una foto de perfil de una persona.
+export const profileUrl = (path, size = 'w185') =>
+  path ? `${IMAGE_URL}/${size}${path}` : null
+
+// Función general para consultar la API de TMDB.
 async function request(endpoint, params = {}, signal) {
   if (!API_KEY) {
     throw new Error(
@@ -16,6 +22,7 @@ async function request(endpoint, params = {}, signal) {
   }
 
   const url = new URL(BASE_URL + endpoint)
+
   url.search = new URLSearchParams({
     api_key: API_KEY,
     language: 'es-ES',
@@ -28,22 +35,35 @@ async function request(endpoint, params = {}, signal) {
     if (res.status === 401) {
       throw new Error('TMDB rechazó la clave. Verificá que sea la API Key v3.')
     }
+
     if (res.status === 404) {
       throw new Error('No encontramos esa serie.')
     }
+
     throw new Error(`Error al consultar TMDB (${res.status}).`)
   }
 
   return res.json()
 }
 
+// Busca series por nombre.
 export async function searchSeries(query, signal) {
   const data = await request('/search/tv', { query }, signal)
+
   return data.results
 }
 
+// Busca actores y actrices para elegir una foto de perfil.
+export async function searchPeople(query, signal) {
+  const data = await request('/search/person', { query }, signal)
+
+  return data.results
+}
+
+// Obtiene las series en tendencia de la semana.
 export async function getTrendingSeries(signal) {
   const data = await request('/trending/tv/week', {}, signal)
+
   return data.results
 }
 
@@ -56,6 +76,7 @@ export function getSeriesDetails(id, signal) {
 export async function getSeriesVideos(id, signal) {
   try {
     const es = await request(`/tv/${id}/videos`, {}, signal)
+
     if (es.results?.length > 0) return es.results
   } catch (error) {
     if (error.name === 'AbortError') throw error
@@ -77,5 +98,6 @@ export async function getWatchProviders(
   region = WATCH_REGION
 ) {
   const data = await request(`/tv/${id}/watch/providers`, {}, signal)
+
   return data.results?.[region] ?? null
 }

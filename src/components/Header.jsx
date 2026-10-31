@@ -1,36 +1,32 @@
-import { NavLink } from 'react-router-dom'
-import { useLists } from '../context/ListsContext'
+import { Link, NavLink } from 'react-router-dom'
 
 export default function Header() {
-  const { favorites, watchlist, watching, watched } = useLists()
-
   return (
     <header className="header">
       <div className="container header-inner">
-        <NavLink to="/" className="logo">
+        <Link to="/" className="logo">
           SeriesHub
-        </NavLink>
+        </Link>
 
-        <nav className="nav">
+        <nav className="nav main-nav" aria-label="Navegación principal">
           <NavLink to="/" end>
             Descubrir
           </NavLink>
 
-          <NavLink to="/viendo">
-            Viendo <span className="count">{watching.length}</span>
-          </NavLink>
+          <div className="profile-menu">
+            <NavLink to="/perfil" className="profile-menu-link">
+              Mi perfil
+              <span className="dropdown-arrow" aria-hidden="true">▾</span>
+            </NavLink>
 
-          <NavLink to="/quiero-ver">
-            Quiero ver <span className="count">{watchlist.length}</span>
-          </NavLink>
-
-          <NavLink to="/ya-la-vi">
-            Ya la vi <span className="count">{watched.length}</span>
-          </NavLink>
-
-          <NavLink to="/favoritos">
-            Favoritos <span className="count">{favorites.length}</span>
-          </NavLink>
+            <div className="profile-dropdown">
+              <Link to="/perfil?tab=series">Series</Link>
+              <Link to="/perfil?tab=pendientes">Pendientes</Link>
+              <Link to="/perfil?tab=favoritos">Favoritos</Link>
+              <Link to="/perfil?tab=actividad">Actividad</Link>
+              <Link to="/perfil?tab=viendo">Viendo</Link>
+            </div>
+          </div>
         </nav>
       </div>
     </header>

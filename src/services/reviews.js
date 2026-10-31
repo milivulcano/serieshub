@@ -130,3 +130,25 @@ export async function getCurrentUserId() {
   const credential = await authReady
   return credential.user.uid
 }
+
+export async function getUserReviews() {
+  const credential = await authReady
+
+  const reviewsQuery = query(
+    reviewsCollection,
+    where('userId', '==', credential.user.uid)
+  )
+
+  const snapshot = await getDocs(reviewsQuery)
+
+  const reviews = snapshot.docs.map((reviewDoc) => ({
+    id: reviewDoc.id,
+    ...reviewDoc.data(),
+  }))
+
+  return reviews.sort((a, b) => {
+    const dateA = a.createdAt?.toMillis?.() ?? 0
+    const dateB = b.createdAt?.toMillis?.() ?? 0
+    return dateB - dateA
+  })
+}
