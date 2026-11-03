@@ -14,6 +14,7 @@ import SeriesCard from '../components/SeriesCard'
 import { useLists } from '../context/ListsContext'
 import ProfileListSection from '../components/ProfileListSection'
 import RecentActivity from '../components/RecentActivity'
+import ActivityList from '../components/ActivityList'
 
 import {
   getUserReviews,
@@ -41,16 +42,6 @@ function getTodayDate() {
   const day = String(today.getDate()).padStart(2, '0')
 
   return `${year}-${month}-${day}`
-}
-
-function formatWatchedDate(date) {
-  if (!date) return ''
-
-  return new Date(`${date}T12:00:00`).toLocaleDateString('es-AR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
 }
 
 export default function Profile() {
@@ -1065,53 +1056,13 @@ export default function Profile() {
             )}
 
             {reviewsReady && !reviewsError && reviews.length > 0 && (
-              <div className="reviews-list">
-                {reviews.map((review) => (
-                  <article className="review-card" key={review.id}>
-                    <div className="review-card-header">
-                      <div className="review-card-rating">
-                        <span
-                          className="review-rating"
-                          aria-label={`${review.rating} de 5 estrellas`}
-                        >
-                          {'★'.repeat(review.rating)}
-                        </span>
-
-                        {review.watchedAt && (
-                          <p className="review-date">
-                            Vista el {formatWatchedDate(review.watchedAt)}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="review-card-actions">
-                        <button
-                          className="review-icon-button"
-                          type="button"
-                          onClick={() => openEditReview(review)}
-                          aria-label="Editar mi reseña"
-                          title="Editar reseña"
-                        >
-                          ✎
-                        </button>
-
-                        <button
-                          className="review-icon-button review-delete"
-                          type="button"
-                          onClick={() => handleDeleteReview(review.id)}
-                          aria-label="Eliminar mi reseña"
-                          title="Eliminar reseña"
-                        >
-                          ♲
-                        </button>
-                      </div>
-                    </div>
-
-                    <h3>{review.seriesName}</h3>
-                    <p className="review-text">{review.text}</p>
-                  </article>
-                ))}
-              </div>
+              <ActivityList
+                reviews={reviews}
+                favorites={favorites}
+                watched={watched}
+                onEdit={openEditReview}
+                onDelete={handleDeleteReview}
+              />
             )}
 
             {editingReview && (

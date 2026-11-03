@@ -20,6 +20,7 @@ export default function ProfileListSection({
       <h2 className="section-title">{title}</h2>
 
       <SeriesGrid
+        className="profile-list-grid"
         series={series}
         emptyMessage={emptyMessage}
       />
