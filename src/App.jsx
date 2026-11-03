@@ -10,6 +10,7 @@ import Header from './components/Header'
 import Home from './pages/Home'
 import SeriesDetails from './pages/SeriesDetails'
 import ReviewDetails from './pages/ReviewDetails'
+import GroupDetails from './pages/GroupDetails'
 
 import Watchlist from './pages/Watchlist'
 import Favorites from './pages/Favorites'
@@ -38,6 +39,11 @@ export default function App() {
             <Route
               path="/resena/:reviewId"
               element={<ReviewDetails />}
+            />
+
+            <Route
+              path="/grupo/:groupId"
+              element={<GroupDetails />}
             />
 
             <Route

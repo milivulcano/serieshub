@@ -15,6 +15,8 @@ import { useLists } from '../context/ListsContext'
 import ProfileListSection from '../components/ProfileListSection'
 import RecentActivity from '../components/RecentActivity'
 import ActivityList from '../components/ActivityList'
+import ProfileStats from '../components/ProfileStats'
+import MyGroups from '../components/MyGroups'
 
 import {
   getUserReviews,
@@ -997,37 +999,51 @@ export default function Profile() {
 
       <div className="profile-tab-content">
         {activeTab === 'perfil' && (
-          <div>
-            {profile.topFavorites?.length > 0 && (
-              <section className="profile-top-favorites">
-                <h2 className="section-title">Series Favoritas</h2>
+          <div className="profile-overview-layout">
+            <div className="profile-overview-main">
+              {profile.topFavorites?.length > 0 && (
+                <section className="profile-top-favorites">
+                  <h2 className="section-title">Series Favoritas</h2>
 
-                <div className="profile-top-favorites-grid">
-                  {profile.topFavorites.map((series) => (
-                    <SeriesCard key={series.id} series={series} />
-                  ))}
+                  <div className="profile-top-favorites-grid">
+                    {profile.topFavorites.map((series) => (
+                      <SeriesCard key={series.id} series={series} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {!profile.topFavorites?.length && !editing && (
+                <div>
+                  <h2 className="section-title">Mi perfil</h2>
+                  <p className="message">
+                    Todavía no elegiste tus cuatro series favoritas.
+                    Podés agregarlas desde «Editar perfil».
+                  </p>
                 </div>
-              </section>
-            )}
+              )}
 
-            {!profile.topFavorites?.length && !editing && (
-              <div>
-                <h2 className="section-title">Mi perfil</h2>
-                <p className="message">
-                  Todavía no elegiste tus cuatro series favoritas.
-                  Podés agregarlas desde «Editar perfil».
-                </p>
-              </div>
-            )}
+              <RecentActivity
+                reviews={reviews}
+                favorites={favorites}
+                watched={watched}
+                loading={!reviewsReady}
+                error={reviewsError}
+                onViewAll={() => selectTab('actividad')}
+              />
+            </div>
 
-            <RecentActivity
-              reviews={reviews}
-              favorites={favorites}
-              watched={watched}
-              loading={!reviewsReady}
-              error={reviewsError}
-              onViewAll={() => selectTab('actividad')}
-            />
+            <aside className="profile-overview-side" aria-label="Resumen de biblioteca">
+              <ProfileStats
+                ready={ready}
+                watched={watched}
+                watchlist={watchlist}
+                watching={watching}
+                favorites={favorites}
+                onSelectTab={selectTab}
+              />
+              <MyGroups />
+            </aside>
           </div>
         )}
 

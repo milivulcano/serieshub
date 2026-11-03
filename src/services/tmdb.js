@@ -2,18 +2,14 @@ const BASE_URL = 'https://api.themoviedb.org/3'
 const IMAGE_URL = 'https://image.tmdb.org/t/p'
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY
 
-// País para consultar las plataformas donde ver la serie.
 export const WATCH_REGION = 'AR'
 
-// Construye la URL de un póster de serie.
 export const posterUrl = (path, size = 'w342') =>
   path ? `${IMAGE_URL}/${size}${path}` : null
 
-// Construye la URL de una foto de perfil de una persona.
 export const profileUrl = (path, size = 'w185') =>
   path ? `${IMAGE_URL}/${size}${path}` : null
 
-// Función general para consultar la API de TMDB.
 async function request(endpoint, params = {}, signal) {
   if (!API_KEY) {
     throw new Error(
@@ -33,49 +29,88 @@ async function request(endpoint, params = {}, signal) {
 
   if (!res.ok) {
     if (res.status === 401) {
-      throw new Error('TMDB rechazó la clave. Verificá que sea la API Key v3.')
+      throw new Error(
+        'TMDB rechazó la clave. Verificá que sea la API Key v3.'
+      )
     }
 
     if (res.status === 404) {
       throw new Error('No encontramos esa serie.')
     }
 
-    throw new Error(`Error al consultar TMDB (${res.status}).`)
+    throw new Error(
+      `Error al consultar TMDB (${res.status}).`
+    )
   }
 
   return res.json()
 }
 
-// Busca series por nombre.
 export async function searchSeries(query, signal) {
-  const data = await request('/search/tv', { query }, signal)
+  const data = await request(
+    '/search/tv',
+    { query },
+    signal
+  )
 
-  return data.results
+  return data.results ?? []
 }
 
-// Busca actores y actrices para elegir una foto de perfil.
 export async function searchPeople(query, signal) {
-  const data = await request('/search/person', { query }, signal)
+  const data = await request(
+    '/search/person',
+    { query },
+    signal
+  )
 
-  return data.results
+  return data.results ?? []
 }
 
-// Obtiene las series en tendencia de la semana.
+// Trae 24 series distintas consultando dos páginas de tendencias.
 export async function getTrendingSeries(signal) {
-  const data = await request('/trending/tv/week', {}, signal)
+  const firstPage = await request(
+    '/trending/tv/week',
+    { page: 1 },
+    signal
+  )
 
-  return data.results
+  const secondPage = await request(
+    '/trending/tv/week',
+    { page: 2 },
+    signal
+  )
+
+  const allSeries = [
+    ...(firstPage.results ?? []),
+    ...(secondPage.results ?? []),
+  ]
+
+  const uniqueSeries = []
+  const seenIds = new Set()
+
+  for (const series of allSeries) {
+    if (seenIds.has(series.id)) continue
+
+    seenIds.add(series.id)
+    uniqueSeries.push(series)
+
+    if (uniqueSeries.length === 24) break
+  }
+
+  return uniqueSeries
 }
 
-// Información completa de una serie.
 export function getSeriesDetails(id, signal) {
   return request(`/tv/${id}`, {}, signal)
 }
 
-// Vídeos de la serie: primero español y después inglés si hace falta.
 export async function getSeriesVideos(id, signal) {
   try {
-    const es = await request(`/tv/${id}/videos`, {}, signal)
+    const es = await request(
+      `/tv/${id}/videos`,
+      {},
+      signal
+    )
 
     if (es.results?.length > 0) return es.results
   } catch (error) {
@@ -91,13 +126,16 @@ export async function getSeriesVideos(id, signal) {
   return en.results ?? []
 }
 
-// Plataformas disponibles en Argentina.
 export async function getWatchProviders(
   id,
   signal,
   region = WATCH_REGION
 ) {
-  const data = await request(`/tv/${id}/watch/providers`, {}, signal)
+  const data = await request(
+    `/tv/${id}/watch/providers`,
+    {},
+    signal
+  )
 
   return data.results?.[region] ?? null
 }

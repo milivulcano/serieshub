@@ -1630,8 +1630,7 @@ main.container {
 }
 
 @media (max-width: 600px) {
-  .top-favorites-grid,
-  .profile-top-favorites-grid {
+  .top-favorites-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
   }
@@ -1648,7 +1647,8 @@ main.container {
 /* ===== Ajustes visuales de los Top 4 ===== */
 /* Pósters más grandes para el Top 4 */
 .profile-top-favorites-grid {
-  grid-template-columns: repeat(4, minmax(0, 190px));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 808px;
   gap: 1rem;
 }
 
@@ -1682,7 +1682,7 @@ main.container {
 /* En pantallas chicas, dos pósters por fila */
 @media (max-width: 600px) {
   .profile-top-favorites-grid {
-    grid-template-columns: repeat(2, minmax(0, 190px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1866,7 +1866,7 @@ main.container {
   flex-wrap: wrap;
   gap: 1rem;
   width: 100%;
-  max-width: 608px; /* 4 pósters de 140px + 3 espacios de 16px */
+  max-width: 808px; /* ancho máximo de cuatro pósters */
 }
 
 .profile-recent-heading .section-title {
@@ -1893,8 +1893,9 @@ main.container {
 
 .profile-recent-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 140px));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
+  max-width: 808px;
   margin-top: 0.25rem;
 }
 
@@ -1929,10 +1930,10 @@ main.container {
 
 @media (max-width: 600px) {
   .profile-recent-heading {
-    max-width: 292px; /* 2 pósters de 140px + 12px de separación */
+    max-width: 392px; /* hasta dos pósters en celulares */
   }
   .profile-recent-grid {
-    grid-template-columns: repeat(2, minmax(0, 140px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
   }
 }
@@ -2123,27 +2124,477 @@ main.container {
   .review-details-rating { justify-content: flex-start; }
 }
 
-/* ===== Igualar Actividad reciente con Series Favoritas ===== */
-
-/* Cuatro pósters de 190px, igual que el Top 4 */
-.profile-recent-grid {
-  grid-template-columns: repeat(4, minmax(0, 190px));
-  gap: 1rem;
+/* ===== Perfil: columnas y estadísticas ===== */
+.profile-overview-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 808px) minmax(220px, 1fr);
+  align-items: start;
+  gap: 1.5rem;
 }
 
-/* Alinear Ver todo con el cuarto póster */
-.profile-recent-heading {
-  max-width: 808px;
+.profile-overview-main,
+.profile-overview-side {
+  min-width: 0;
 }
 
-/* En celulares, mantener dos pósters por fila */
+.profile-overview-side {
+  padding-top: 1.1rem;
+}
+
+.profile-stats-card {
+  padding: 1.15rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+}
+
+.profile-stats-card h2 {
+  margin-bottom: 0.6rem;
+  font-size: 1.15rem;
+}
+
+.profile-stats-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-stats-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.9rem 0.1rem;
+  border: 0;
+  border-bottom: 1px solid var(--surface-2);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-stats-row:last-child {
+  border-bottom: 0;
+}
+
+.profile-stats-row:hover .profile-stats-label,
+.profile-stats-row:focus-visible .profile-stats-label {
+  color: var(--accent);
+}
+
+.profile-stats-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.profile-stats-label {
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.profile-stats-count {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .profile-overview-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-overview-side {
+    padding-top: 0;
+    max-width: 420px;
+  }
+}
+
 @media (max-width: 600px) {
+  .profile-top-favorites-grid,
   .profile-recent-grid {
-    grid-template-columns: repeat(2, minmax(0, 190px));
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .profile-recent-heading {
     max-width: 392px;
   }
+}
+
+/* ===== Home: vista previa de foros ===== */
+.home-forums {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--surface-2);
+}
+
+.home-forums-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.home-forums-heading .section-title {
+  margin: 0 0 0.35rem;
+}
+
+.home-forums-heading p,
+.home-forums-search-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.home-forums-search {
+  display: block;
+  width: min(100%, 560px);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.home-forums-search:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.home-forums-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.home-forum-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1.1rem;
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.home-forum-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--accent);
+  font-size: 1.4rem;
+}
+
+.home-forum-info {
+  min-width: 0;
+}
+
+.home-forum-info h3 {
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.home-forum-info p {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.home-forum-topic {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@media (max-width: 850px) {
+  .home-forums-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 570px) {
+  .home-forums-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Grupos: crear, editar y administrar ===== */
+
+.group-primary-button,
+.group-secondary-button,
+.group-danger-button {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--surface-2);
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.group-primary-button {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1015;
+}
+
+.group-secondary-button {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.group-danger-button {
+  background: transparent;
+  border-color: #a94e5a;
+  color: #ff9b9b;
+}
+
+.group-primary-button:disabled,
+.group-secondary-button:disabled,
+.group-danger-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.group-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-width: 620px;
+  margin: 1rem 0 1.6rem;
+  padding: 1.25rem;
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.group-form h2,
+.group-form h3 {
+  font-size: 1.15rem;
+}
+
+.group-form label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.group-form input,
+.group-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #393d4e;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.group-form textarea {
+  resize: vertical;
+}
+
+.group-form > .group-primary-button {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.group-card-link {
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.group-card-link:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.group-details-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.group-back-link {
+  display: inline-block;
+}
+
+.group-details-card {
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid var(--surface-2);
+  border-radius: 16px;
+  background: #171923;
+}
+
+.group-details-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.group-details-heading h1 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.group-details-description {
+  margin: 1.25rem 0;
+  line-height: 1.7;
+}
+
+.group-details-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.group-messages-next {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--surface-2);
+}
+
+.group-messages-next h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.group-messages-next p {
+  color: var(--muted);
+}
+/* ===== Membresías de grupos y Mis grupos ===== */
+.group-membership-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.group-membership-summary { display: flex; align-items: baseline; gap: 0.55rem; }
+.group-membership-summary strong { font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+.group-membership-summary span { color: var(--muted); }
+.group-members-section { margin-bottom: 1.5rem; }
+.group-members-section h2 { margin-bottom: 0.75rem; font-size: 1.1rem; }
+.group-members-list { list-style: none; padding: 0; display: grid; gap: 0.55rem; }
+.group-members-list li { display: flex; align-items: center; gap: 0.65rem; }
+.group-member-avatar {
+  display: grid; place-items: center; width: 32px; height: 32px;
+  border-radius: 50%; background: var(--surface-2); color: var(--accent);
+}
+.group-owner-label { margin-left: 0.5rem; color: var(--accent); font-size: 0.75rem; }
+
+.profile-my-groups {
+  margin-top: 1rem;
+  padding: 1.15rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+}
+.profile-my-groups-heading {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.5rem; margin-bottom: 0.75rem;
+}
+.profile-my-groups-heading h2 { font-size: 1.15rem; }
+.profile-my-groups-heading span { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.profile-my-groups-empty { color: var(--muted); font-size: 0.88rem; padding-block: 0.4rem; }
+.profile-my-groups-list { display: grid; }
+.profile-my-group-link {
+  display: flex; align-items: center; gap: 0.6rem; min-width: 0;
+  padding: 0.7rem 0; border-bottom: 1px solid var(--surface-2);
+}
+.profile-my-group-link:hover strong, .profile-my-group-link:focus-visible strong { color: var(--accent); }
+.profile-my-group-icon {
+  display: grid; place-items: center; flex: 0 0 30px; width: 30px; height: 30px;
+  border-radius: 8px; background: var(--surface-2); color: var(--accent);
+}
+.profile-my-group-info { min-width: 0; flex: 1; display: grid; gap: 0.1rem; }
+.profile-my-group-info strong { font-size: 0.86rem; overflow-wrap: anywhere; }
+.profile-my-group-info small { font-size: 0.75rem; color: var(--muted); }
+.profile-my-groups-discover {
+  display: inline-block; margin-top: 0.9rem; color: var(--accent);
+  font-size: 0.87rem; font-weight: 600;
+}
+.profile-my-groups-discover:hover { text-decoration: underline; }
+
+/* ===== Conversaciones de grupos ===== */
+.group-chat {
+  margin-top: 2rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--surface-2);
+}
+.group-chat-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.group-chat-heading h2 { font-size: 1.2rem; }
+.group-chat-heading span { color: var(--muted); font-size: .85rem; }
+.group-conversation-starters {
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+}
+.group-conversation-starters strong { color: var(--accent); }
+.group-conversation-starters ul { padding-left: 1.3rem; margin-top: .65rem; }
+.group-conversation-starters li + li { margin-top: .45rem; }
+.group-chat-list { display: flex; flex-direction: column; gap: .8rem; margin-bottom: 1.25rem; }
+.group-chat-message {
+  padding: 1rem;
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+.group-chat-message.mine { border-color: rgba(255, 122, 143, .35); }
+.group-chat-message-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: .5rem; justify-content: space-between; }
+.group-chat-message-header strong { color: var(--accent); font-size: .9rem; }
+.group-chat-message-header time { color: var(--muted); font-size: .77rem; }
+.group-chat-text { white-space: pre-wrap; margin-top: .6rem; line-height: 1.6; }
+.group-chat-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .7rem; }
+.group-chat-message > .group-chat-actions button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .84rem;
+}
+.group-chat-message > .group-chat-actions button:hover { color: var(--accent); }
+.group-chat-actions button:disabled { opacity: .5; cursor: wait; }
+.group-chat-empty, .group-chat-join-hint { color: var(--muted); padding: .8rem 0 1.2rem; }
+.group-chat-compose, .group-chat-edit { display: flex; flex-direction: column; gap: .6rem; }
+.group-chat-compose label { font-weight: 600; }
+.group-chat-compose textarea, .group-chat-edit textarea {
+  width: 100%;
+  padding: .8rem;
+  resize: vertical;
+  border: 1px solid var(--surface-2);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--text);
+}
+.group-chat-compose-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+.group-chat-compose-footer small { color: var(--muted); }
+.group-chat-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
