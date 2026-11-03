@@ -1,7 +1,8 @@
 import {
   BrowserRouter,
-  Routes,
+  Navigate,
   Route,
+  Routes,
 } from 'react-router-dom'
 
 import { ListsProvider } from './context/ListsContext'
@@ -11,11 +12,6 @@ import Home from './pages/Home'
 import SeriesDetails from './pages/SeriesDetails'
 import ReviewDetails from './pages/ReviewDetails'
 import GroupDetails from './pages/GroupDetails'
-
-import Watchlist from './pages/Watchlist'
-import Favorites from './pages/Favorites'
-import Watching from './pages/Watching'
-import Watched from './pages/Watched'
 import Profile from './pages/Profile'
 
 export default function App() {
@@ -26,10 +22,7 @@ export default function App() {
 
         <main className="container">
           <Routes>
-            <Route
-              path="/"
-              element={<Home />}
-            />
+            <Route path="/" element={<Home />} />
 
             <Route
               path="/serie/:id"
@@ -51,24 +44,51 @@ export default function App() {
               element={<Profile />}
             />
 
+            {/* Enlaces antiguos: redirigen a las pestañas del perfil */}
             <Route
-              path="/quiero-ver"
-              element={<Watchlist />}
+              path="/ya-la-vi"
+              element={
+                <Navigate
+                  to="/perfil?tab=series"
+                  replace
+                />
+              }
             />
 
             <Route
-              path="/favoritos"
-              element={<Favorites />}
+              path="/quiero-ver"
+              element={
+                <Navigate
+                  to="/perfil?tab=pendientes"
+                  replace
+                />
+              }
             />
 
             <Route
               path="/viendo"
-              element={<Watching />}
+              element={
+                <Navigate
+                  to="/perfil?tab=viendo"
+                  replace
+                />
+              }
             />
 
             <Route
-              path="/ya-la-vi"
-              element={<Watched />}
+              path="/favoritos"
+              element={
+                <Navigate
+                  to="/perfil?tab=favoritos"
+                  replace
+                />
+              }
+            />
+
+            {/* Cualquier dirección desconocida vuelve a Descubrir */}
+            <Route
+              path="*"
+              element={<Navigate to="/" replace />}
             />
           </Routes>
         </main>
