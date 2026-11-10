@@ -481,6 +481,7 @@ export default function SeriesDetails() {
         </div>
       </section>
 
+      <div className={`details-lower-layout${trailer ? ' has-trailer' : ''}`}>
       <section className="details-section detail-actions-section">
         <h2 className="section-title">Tu biblioteca</h2>
 
@@ -546,7 +547,7 @@ export default function SeriesDetails() {
       </section>
 
       {trailer && (
-        <section className="details-section">
+        <section className="details-section details-trailer-section">
           <h2 className="section-title">Tráiler</h2>
 
           <div className="trailer">
@@ -560,6 +561,8 @@ export default function SeriesDetails() {
           </div>
         </section>
       )}
+
+      </div>
 
       {reviewMessage && (
         <p className="message" role="status">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createGroup, getGroups } from '../services/groups'
 
@@ -7,7 +7,6 @@ import { FEATURED_FORUMS } from '../services/featuredForums'
 export default function PopularForums() {
   const navigate = useNavigate()
 
-  const [query, setQuery] = useState('')
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -30,7 +29,7 @@ export default function PopularForums() {
         console.error('Error al cargar grupos:', err)
 
         if (active) {
-          setLoadError('No se pudieron cargar los grupos creados.')
+          setLoadError('No se pudieron cargar los foros creados.')
         }
       })
       .finally(() => {
@@ -42,25 +41,10 @@ export default function PopularForums() {
     }
   }, [])
 
-  const shownGroups = useMemo(() => {
-    const term = query.trim().toLocaleLowerCase('es')
-
-    const all = [
-      ...FEATURED_FORUMS,
-      ...groups.map((group) => ({
-        ...group,
-        featured: false,
-      })),
-    ]
-
-    if (!term) return all
-
-    return all.filter((forum) =>
-      [forum.title, forum.description, forum.topic].some((value) =>
-        value.toLocaleLowerCase('es').includes(term)
-      )
-    )
-  }, [query, groups])
+  const shownGroups = [
+    ...FEATURED_FORUMS,
+    ...groups.map((group) => ({ ...group, featured: false })),
+  ]
 
   async function handleCreate(event) {
     event.preventDefault()
@@ -76,8 +60,8 @@ export default function PopularForums() {
 
       navigate(`/grupo/${id}`)
     } catch (err) {
-      console.error('Error al crear grupo:', err)
-      setFormError(err.message || 'No pudimos crear el grupo.')
+      console.error('Error al crear foro:', err)
+      setFormError(err.message || 'No pudimos crear el foro.')
     } finally {
       setSaving(false)
     }
@@ -112,13 +96,13 @@ export default function PopularForums() {
           }}
           aria-expanded={showForm}
         >
-          {showForm ? 'Cancelar' : '+ Crear grupo'}
+          {showForm ? 'Cancelar' : '+ Crear foro'}
         </button>
       </div>
 
       {showForm && (
         <form className="group-form" onSubmit={handleCreate}>
-          <h3>Crear un grupo</h3>
+          <h3>Crear un foro</h3>
 
           <label htmlFor="new-group-title">Nombre</label>
           <input
@@ -153,7 +137,7 @@ export default function PopularForums() {
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="¿De qué se va a hablar en este grupo?"
+            placeholder="¿De qué se va a hablar en este foro?"
           />
 
           {formError && (
@@ -167,29 +151,14 @@ export default function PopularForums() {
             type="submit"
             disabled={saving}
           >
-            {saving ? 'Creando…' : 'Crear grupo'}
+            {saving ? 'Creando…' : 'Crear foro'}
           </button>
         </form>
       )}
 
-      <label
-        className="home-forums-search-label"
-        htmlFor="home-forums-search"
-      >
-        Buscar foros
-      </label>
-
-      <input
-        id="home-forums-search"
-        className="home-forums-search"
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Buscar por nombre o temática…"
-      />
 
       {loading && (
-        <p className="message">Cargando grupos…</p>
+        <p className="message">Cargando foros…</p>
       )}
 
       {loadError && (
@@ -230,7 +199,7 @@ export default function PopularForums() {
                 key={forum.id}
                 to={`/grupo/${forum.id}`}
                 className="home-forum-card group-card-link"
-                aria-label={`Entrar al grupo ${forum.title}`}
+                aria-label={`Entrar al foro ${forum.title}`}
               >
                 {content}
               </Link>

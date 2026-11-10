@@ -68,19 +68,20 @@ export async function getGroupById(groupId) {
 export async function createGroup(data) {
   const userId = await currentUid()
   const groupRef = doc(groupsCollection)
-  const batch = writeBatch(db)
-  batch.set(groupRef, {
+  // El foro empieza sin publicaciones y su creador queda siguiéndolo.
+  await setDoc(groupRef, {
     ...cleanGroup(data),
     icon: '✦',
     ownerId: userId,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
-  batch.set(memberRef(groupRef.id, userId), {
+  // La subcolección de seguimiento es necesaria para poder publicar.
+  // Primero se crea el foro, porque las reglas pueden exigir que exista.
+  await setDoc(memberRef(groupRef.id, userId), {
     userId,
     joinedAt: serverTimestamp(),
   })
-  await batch.commit()
   return groupRef.id
 }
 
@@ -130,6 +131,10 @@ export async function joinGroup(groupId) {
 
 export async function leaveGroup(groupId) {
   const userId = await currentUid()
+  const group = await getGroupById(groupId)
+  if (group?.ownerId === userId) {
+    throw new Error('No podés dejar de seguir un foro que creaste.')
+  }
   await deleteDoc(memberRef(groupId, userId))
 }
 
@@ -144,11 +149,17 @@ export async function getMyGroups() {
   const groups = [...FEATURED_FORUMS, ...(await getGroups())]
   const checks = await Promise.all(groups.map(async (group) => {
     const membership = await getDoc(memberRef(group.id, userId))
-    return membership.exists() ? group : null
+    return membership.exists() || group.ownerId === userId ? group : null
   }))
   return checks.filter(Boolean)
 }
 
 export async function getCurrentGroupUserId() {
   return currentUid()
+}
+// Comprueba únicamente la membresía del usuario actual, sin cargar la lista pública.
+export async function isFollowingForum(groupId) {
+  const userId = await currentUid()
+  const membership = await getDoc(memberRef(groupId, userId))
+  return membership.exists()
 }

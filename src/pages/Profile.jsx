@@ -1000,11 +1000,10 @@ export default function Profile() {
       <div className="profile-tab-content">
         {activeTab === 'perfil' && (
           <div className="profile-overview-layout">
-            <div className="profile-overview-main">
+            <div className="profile-favorites-area">
               {profile.topFavorites?.length > 0 && (
                 <section className="profile-top-favorites">
                   <h2 className="section-title">Series Favoritas</h2>
-
                   <div className="profile-top-favorites-grid">
                     {profile.topFavorites.map((series) => (
                       <SeriesCard key={series.id} series={series} />
@@ -1012,17 +1011,29 @@ export default function Profile() {
                   </div>
                 </section>
               )}
-
               {!profile.topFavorites?.length && !editing && (
-                <div>
-                  <h2 className="section-title">Mi perfil</h2>
+                <section className="profile-top-favorites">
+                  <h2 className="section-title">Series Favoritas</h2>
                   <p className="message">
                     Todavía no elegiste tus cuatro series favoritas.
                     Podés agregarlas desde «Editar perfil».
                   </p>
-                </div>
+                </section>
               )}
+            </div>
 
+            <aside className="profile-stats-area" aria-label="Estadísticas de biblioteca">
+              <ProfileStats
+                ready={ready}
+                watched={watched}
+                watchlist={watchlist}
+                watching={watching}
+                favorites={favorites}
+                onSelectTab={selectTab}
+              />
+            </aside>
+
+            <div className="profile-activity-area">
               <RecentActivity
                 reviews={reviews}
                 favorites={favorites}
@@ -1033,15 +1044,7 @@ export default function Profile() {
               />
             </div>
 
-            <aside className="profile-overview-side" aria-label="Resumen de biblioteca">
-              <ProfileStats
-                ready={ready}
-                watched={watched}
-                watchlist={watchlist}
-                watching={watching}
-                favorites={favorites}
-                onSelectTab={selectTab}
-              />
+            <aside className="profile-forums-area" aria-label="Foros que seguís">
               <MyGroups />
             </aside>
           </div>

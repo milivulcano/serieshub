@@ -15,8 +15,8 @@ export default function MyGroups() {
         if (active) setGroups(data)
       })
       .catch((err) => {
-        console.error('Error al cargar mis grupos:', err)
-        if (active) setError('No pudimos cargar tus grupos.')
+        console.error('Error al cargar mis foros:', err)
+        if (active) setError('No pudimos cargar tus foros.')
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -28,16 +28,16 @@ export default function MyGroups() {
   return (
     <section className="profile-my-groups" aria-labelledby="profile-my-groups-title">
       <div className="profile-my-groups-heading">
-        <h2 id="profile-my-groups-title">Mis grupos</h2>
-        <span aria-label={`${groups.length} grupos`}>{loading ? '—' : groups.length}</span>
+        <h2 id="profile-my-groups-title">Mis foros</h2>
+        <span aria-label={`${groups.length} foros`}>{loading ? '—' : groups.length}</span>
       </div>
 
-      {loading && <p className="profile-my-groups-empty">Cargando grupos…</p>}
+      {loading && <p className="profile-my-groups-empty">Cargando foros…</p>}
       {error && <p className="message error" role="alert">{error}</p>}
 
       {!loading && !error && groups.length === 0 && (
         <p className="profile-my-groups-empty">
-          Todavía no te uniste a ningún grupo.
+          Todavía no te uniste a ningún foro.
         </p>
       )}
 

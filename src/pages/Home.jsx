@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import SearchBar from '../components/SearchBar'
 import SeriesGrid from '../components/SeriesGrid'
 import PopularForums from '../components/PopularForums'
-import { searchSeries, getTrendingSeries } from '../services/tmdb'
+import { searchSeries, getTrendingSeries, posterUrl } from '../services/tmdb'
 
 export default function Home() {
   const [query, setQuery] = useState('')
@@ -10,6 +10,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const term = query.trim()
+  const heroBackdrop = results.find((series) => series.backdrop_path)?.backdrop_path
+  const heroImage = !term && heroBackdrop ? posterUrl(heroBackdrop, 'w1280') : null
 
   useEffect(() => {
     const controller = new AbortController()
@@ -44,13 +46,18 @@ export default function Home() {
 
   return (
     <>
-      <section className="hero">
+      <section
+        className="hero home-hero"
+        style={heroImage ? { '--home-hero-image': `url("${heroImage}")` } : undefined}
+      >
+        <div className="home-hero-content">
         <h1>Encontrá tu próxima serie</h1>
         <p>Buscá, guardá lo que querés ver y marcá tus favoritas.</p>
         <SearchBar value={query} onChange={setQuery} />
+        </div>
       </section>
 
-      <section aria-labelledby="home-series-title">
+      <section className="home-series-section" aria-labelledby="home-series-title">
         <h2 className="section-title" id="home-series-title">
           {term ? `Resultados para “${term}”` : 'En tendencia esta semana'}
         </h2>
