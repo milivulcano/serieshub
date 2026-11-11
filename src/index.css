@@ -2812,3 +2812,236 @@ main.container {
   .profile-top-favorites-grid, .profile-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .home-hero { min-height: 350px; padding-inline: .8rem; }
 }
+
+/* ===== Detalle de serie: biblioteca vertical y subpestañas TMDB ===== */
+.details-lower-layout.details-media-layout {
+  grid-template-columns: minmax(210px, .56fr) minmax(0, 1.44fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+.details-media-layout .detail-actions-section,
+.details-media-layout .details-media-section { padding: 0; overflow: hidden; min-width: 0; }
+.detail-library-actions { display: flex; flex-direction: column; }
+.detail-library-action {
+  display: flex; align-items: center; gap: 1rem;
+  width: 100%; min-height: 62px; padding: 1rem 1.2rem;
+  border: 0; border-bottom: 1px solid var(--surface-2);
+  background: transparent; color: var(--text); cursor: pointer;
+  font-weight: 600; text-align: left; transition: background .18s, color .18s;
+}
+.detail-library-action:last-child { border-bottom: 0; }
+.detail-library-action svg { flex-shrink: 0; }
+.detail-library-action:hover { background: var(--surface-2); }
+.detail-library-action.on { color: var(--accent); background: rgb(255 122 143 / 6%); }
+.detail-library-action:focus-visible { outline-offset: -3px; }
+.detail-media-tabs {
+  display: flex; align-items: stretch; gap: 0; overflow-x: auto;
+  border-bottom: 1px solid var(--surface-2); scrollbar-width: thin;
+}
+.detail-media-tabs button {
+  flex: 1 0 auto; padding: 1rem .65rem; background: transparent;
+  color: var(--muted); border: 0; border-bottom: 3px solid transparent;
+  font-weight: 650; cursor: pointer; white-space: nowrap;
+}
+.detail-media-tabs button:hover { color: var(--text); }
+.detail-media-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+.detail-media-panel { min-width: 0; padding: 1.2rem; }
+.detail-media-panel .trailer { width: 100%; max-width: 650px; margin-inline: auto; }
+.detail-people-rail {
+  display: flex; gap: .8rem; overflow-x: auto; overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none;
+}
+.detail-people-rail::-webkit-scrollbar { display: none; }
+.detail-person-card { flex: 0 0 125px; min-width: 0; scroll-snap-align: start; text-align: center; }
+.detail-person-photo {
+  width: 100%; aspect-ratio: 2 / 3; overflow: hidden;
+  display: flex; justify-content: center; align-items: center;
+  border-radius: 10px; background: var(--surface-2); color: var(--muted);
+}
+.detail-person-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-person-card strong { display: block; margin-top: .5rem; font-size: .85rem; line-height: 1.35; overflow-wrap: anywhere; }
+.detail-person-card > span { display: block; margin-top: .2rem; font-size: .78rem; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+.detail-carousel-controls { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+.detail-carousel-controls button {
+  display: grid; place-items: center; width: 36px; height: 36px;
+  border: 1px solid var(--surface-2); border-radius: 50%;
+  background: var(--surface-2); color: var(--text); cursor: pointer;
+}
+.detail-carousel-controls button:hover { border-color: var(--accent); color: var(--accent); }
+.detail-similar-title { margin: 0 0 1rem; font-size: 1.15rem; }
+.detail-similar-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem .8rem; }
+.detail-similar-card { display: block; min-width: 0; }
+.detail-similar-poster {
+  display: grid; place-items: center; aspect-ratio: 2/3; overflow: hidden;
+  border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: .8rem;
+}
+.detail-similar-poster img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s; }
+.detail-similar-card:hover img { transform: scale(1.04); }
+.detail-similar-card > span { display: block; font-size: .82rem; margin-top: .4rem; line-height: 1.35; overflow-wrap: anywhere; }
+.detail-similar-card:hover > span { color: var(--accent); }
+@media (max-width: 900px) {
+  .details-lower-layout.details-media-layout { grid-template-columns: minmax(0, 1fr); }
+  .detail-library-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .detail-library-action { border-right: 1px solid var(--surface-2); }
+}
+@media (max-width: 540px) {
+  .detail-library-actions { grid-template-columns: minmax(0, 1fr); }
+  .detail-library-action { border-right: 0; }
+  .detail-person-card { flex-basis: 108px; }
+  .detail-similar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+  .detail-media-tabs button { padding-inline: .7rem; font-size: .85rem; }
+  .detail-media-panel { padding: .9rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-people-rail { scroll-behavior: auto; }
+  .detail-library-action, .detail-similar-poster img { transition: none; }
+}
+
+/* ===== Detalle de serie: ajustes de alineación y grillas completas ===== */
+/* La biblioteca se alinea con el contenido del tráiler, debajo de las pestañas. */
+.details-media-layout .detail-actions-section {
+  margin-top: 59px;
+}
+/* Seis personas completas por página; los botones cambian de página. */
+.detail-people-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .65rem;
+  align-items: start;
+}
+.detail-people-grid .detail-person-card {
+  width: 100%;
+  min-width: 0;
+}
+.detail-carousel-page {
+  align-self: center;
+  margin-right: auto;
+  font-size: .83rem;
+  color: var(--muted);
+}
+.detail-carousel-controls button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  border-color: var(--surface-2);
+  color: var(--muted);
+}
+/* Series similares en filas de seis y fotos más pequeñas. */
+.detail-similar-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .9rem .65rem;
+}
+@media (max-width: 900px) {
+  .details-media-layout .detail-actions-section { margin-top: 0; }
+}
+@media (max-width: 540px) {
+  .detail-people-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .detail-similar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ===== Detalle: carrusel animado, tarjetas estables y ficha superior compacta ===== */
+/* La primera fila no puede crecer más allá del póster en escritorio. */
+.details-hero-inner {
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+}
+.details-hero .details-poster {
+  width: 240px;
+  height: 360px;
+  aspect-ratio: 2 / 3;
+}
+.details-hero .details-info {
+  min-width: 0;
+  height: 360px;
+  max-height: 360px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: .5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-2) transparent;
+}
+.details-hero .details-info h1 { font-size: clamp(1.65rem, 3vw, 2.35rem); }
+.details-hero .chips { margin-block: .75rem; gap: .4rem; }
+.details-hero .chips li { padding: .15rem .65rem; font-size: .8rem; }
+.details-hero .details-description,
+.details-hero .details-platforms { margin-top: .9rem; }
+.details-hero .details-description .section-title,
+.details-hero .details-platforms .section-title { margin: 0 0 .35rem; font-size: 1.05rem; }
+.details-hero .details-overview { line-height: 1.45; margin-bottom: .4rem; font-size: .94rem; }
+.details-hero .details-overview:not(.expanded) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.details-read-more {
+  border: 0;
+  padding: .1rem 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: .86rem;
+  cursor: pointer;
+}
+.details-read-more:hover { text-decoration: underline; }
+.details-hero .provider-group { margin-bottom: .6rem; }
+.details-hero .provider-label { font-size: .8rem; margin-bottom: .3rem; }
+.details-hero .providers { gap: .4rem; }
+.details-hero .details-platforms .providers img { width: 36px; height: 36px; border-radius: 8px; }
+.details-hero .details-platforms .empty { padding-block: .3rem; }
+
+/* No se sustituyen de golpe las tarjetas: el carrusel mueve páginas completas. */
+.detail-people-viewport { width: 100%; min-width: 0; overflow: hidden; }
+.detail-people-track {
+  display: flex;
+  width: 100%;
+  transition: transform .42s cubic-bezier(.2,.75,.2,1);
+  will-change: transform;
+}
+.detail-people-track > .detail-people-page {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+}
+.detail-people-grid { align-items: start; }
+.detail-people-grid .detail-person-card { min-width: 0; }
+/* El texto se limita a dos líneas y reserva siempre la misma altura. */
+.detail-people-grid .detail-person-card strong,
+.detail-people-grid .detail-person-card > span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.detail-people-grid .detail-person-card strong {
+  height: 2.7em;
+  line-height: 1.35;
+}
+.detail-people-grid .detail-person-card > span {
+  height: 2.7em;
+  line-height: 1.35;
+}
+
+/* En similares se reutiliza exactamente el efecto hover de .poster.poster-link. */
+.detail-similar-card .poster { width: 100%; }
+.detail-similar-card .poster-overlay-title { font-size: clamp(.72rem, 1.1vw, 1rem); }
+.detail-similar-card .poster img { height: 100%; }
+
+@media (max-width: 640px) {
+  .details-hero-inner { grid-template-columns: minmax(0, 1fr); }
+  .details-hero .details-poster {
+    width: min(200px, 100%);
+    height: auto;
+    aspect-ratio: 2 / 3;
+  }
+  .details-hero .details-info {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+  .details-hero .details-overview:not(.expanded) { -webkit-line-clamp: 5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-people-track { transition: none; }
+}

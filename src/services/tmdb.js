@@ -139,3 +139,37 @@ export async function getWatchProviders(
 
   return data.results?.[region] ?? null
 }
+
+// Créditos agregados de toda la serie: reparto, personajes y equipo.
+export async function getSeriesCredits(id, signal) {
+  const data = await request(`/tv/${id}/aggregate_credits`, {}, signal)
+  return { cast: data.cast ?? [], crew: data.crew ?? [] }
+}
+
+// Series relacionadas. Devuelve los pósters de TMDB, no datos inventados.
+// Hasta 24 series similares diferentes, en filas completas de seis.
+// Si TMDB ofrece menos resultados, se muestran las filas completas disponibles.
+export async function getSimilarSeries(id, signal) {
+  const firstPage = await request(`/tv/${id}/similar`, { page: 1 }, signal)
+  let results = firstPage.results ?? []
+
+  if (firstPage.total_pages > 1) {
+    try {
+      const secondPage = await request(`/tv/${id}/similar`, { page: 2 }, signal)
+      results = [...results, ...(secondPage.results ?? [])]
+    } catch (error) {
+      if (error.name === 'AbortError') throw error
+      console.warn('No se pudo cargar otra página de series similares:', error)
+    }
+  }
+
+  const seen = new Set()
+  const unique = results.filter((series) => {
+    if (!series.poster_path || series.id === Number(id) || seen.has(series.id)) return false
+    seen.add(series.id)
+    return true
+  }).slice(0, 24)
+
+  const fullRows = Math.floor(unique.length / 6) * 6
+  return unique.slice(0, fullRows || unique.length)
+}

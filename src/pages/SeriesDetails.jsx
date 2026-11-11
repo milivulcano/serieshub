@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   getSeriesDetails,
   getSeriesVideos,
   getWatchProviders,
+  getSeriesCredits,
+  getSimilarSeries,
   posterUrl,
+  profileUrl,
 } from '../services/tmdb'
 import { useLists } from '../context/ListsContext'
 import {
@@ -51,6 +54,142 @@ function pickTrailer(videos) {
   )
 }
 
+
+// Iconos SVG consistentes con el resto de la interfaz.
+function DetailIcon({ name, size = 20, active = false }) {
+  const mainFill = active ? 'currentColor' : 'none'
+  const paths = {
+    eye: <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" fill={mainFill}/>
+      <circle cx="12" cy="12" r="3" fill={active ? 'var(--surface)' : 'none'}/>
+    </>,
+    heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" fill={mainFill}/>,
+    clock: <>
+      <circle cx="12" cy="12" r="9" fill={mainFill}/>
+      <path d="M12 7v5l3 2" stroke={active ? 'var(--surface)' : 'currentColor'}/>
+    </>,
+    play: <path d="m8 5 11 7-11 7V5Z" fill={mainFill}/>,
+    pencil: <><path d="m15 5 4 4M4 20l4.3-.8L20 7.5 16.5 4 4.8 15.7 4 20Z"/></>,
+    chevronLeft: <path d="m15 18-6-6 6-6"/>,
+    chevronRight: <path d="m9 18 6-6-6-6"/>,
+    user: <><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3-7 8-7s8 3 8 7"/></>,
+  }
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"
+      strokeLinejoin="round" aria-hidden="true" focusable="false">
+      {paths[name]}
+    </svg>
+  )
+}
+
+// Carrusel por páginas completas: seis personas a la vez y transición suave.
+// Todas las páginas mantienen la misma altura, incluso con textos largos.
+function PeopleCarousel({ people, mode }) {
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 6
+  const totalPages = Math.ceil(people.length / PAGE_SIZE)
+  const currentPage = Math.min(page, Math.max(0, totalPages - 1))
+
+  if (!people.length) {
+    return <p className="empty">No hay información disponible para esta serie.</p>
+  }
+
+  const pages = Array.from({ length: totalPages }, (_, index) =>
+    people.slice(index * PAGE_SIZE, (index + 1) * PAGE_SIZE)
+  )
+
+  return (
+    <div className="detail-people">
+      <div className="detail-people-viewport">
+        <div
+          className="detail-people-track"
+          style={{ transform: `translateX(-${currentPage * 100}%)` }}
+        >
+          {pages.map((pagePeople, index) => (
+            <div
+              className="detail-people-grid detail-people-page"
+              key={`${mode}-page-${index}`}
+              aria-hidden={index !== currentPage}
+            >
+              {pagePeople.map((person) => {
+                const photo = profileUrl(person.profile_path, 'w185')
+                const role = mode === 'cast'
+                  ? person.roles?.map((item) => item.character).filter(Boolean).join(', ') || 'Reparto'
+                  : person.jobs?.map((item) => item.job).filter(Boolean).join(', ') || person.department || 'Equipo'
+
+                return (
+                  <article className="detail-person-card" key={person.id}>
+                    <div className="detail-person-photo">
+                      {photo ? (
+                        <img src={photo} alt={`Foto de ${person.name}`} loading="lazy" />
+                      ) : (
+                        <DetailIcon name="user" size={36} />
+                      )}
+                    </div>
+                    <strong title={person.name}>{person.name}</strong>
+                    <span title={role}>{role}</span>
+                  </article>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="detail-carousel-controls" aria-label="Navegar por las personas">
+          <span className="detail-carousel-page">{currentPage + 1} de {totalPages}</span>
+          <button type="button" disabled={currentPage === 0}
+            onClick={() => setPage((current) => Math.max(0, current - 1))}
+            aria-label="Ver las seis personas anteriores">
+            <DetailIcon name="chevronLeft" />
+          </button>
+          <button type="button" disabled={currentPage >= totalPages - 1}
+            onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}
+            aria-label="Ver las seis personas siguientes">
+            <DetailIcon name="chevronRight" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Usa el mismo póster con overlay y opacidad que SeriesCard en la Home.
+function SimilarSeries({ items }) {
+  if (!items.length) {
+    return <p className="empty">Todavía no hay series similares disponibles.</p>
+  }
+
+  return (
+    <div className="detail-similar-grid">
+      {items.map((item) => (
+        <article className="card detail-similar-card" key={item.id}>
+          <Link
+            to={`/serie/${item.id}`}
+            className="poster poster-link"
+            aria-label={`Ver ficha de ${item.name}`}
+          >
+            {item.poster_path ? (
+              <img
+                src={posterUrl(item.poster_path, 'w342')}
+                alt={`Póster de ${item.name}`}
+                loading="lazy"
+              />
+            ) : (
+              <span className="no-poster">Sin póster</span>
+            )}
+            <span className="poster-overlay">
+              <span className="poster-overlay-title">{item.name}</span>
+            </span>
+          </Link>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 export default function SeriesDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -69,6 +208,12 @@ export default function SeriesDetails() {
   const [series, setSeries] = useState(null)
   const [trailer, setTrailer] = useState(null)
   const [providers, setProviders] = useState(null)
+  const [mediaTab, setMediaTab] = useState('trailer')
+  const [synopsisExpanded, setSynopsisExpanded] = useState(false)
+  const [credits, setCredits] = useState(null)
+  const [similar, setSimilar] = useState(null)
+  const [mediaLoading, setMediaLoading] = useState(false)
+  const [mediaError, setMediaError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -94,6 +239,10 @@ export default function SeriesDetails() {
       setLoading(true)
       setError('')
       setSeries(null)
+      setMediaTab('trailer')
+      setSynopsisExpanded(false)
+      setCredits(null)
+      setSimilar(null)
 
       try {
         const [details, videos, watch] = await Promise.all([
@@ -152,6 +301,34 @@ export default function SeriesDetails() {
       active = false
     }
   }, [id])
+
+  // La ficha principal sigue visible. Solo consultamos los datos de la pestaña seleccionada.
+  useEffect(() => {
+    if (mediaTab === 'trailer') return
+    if ((mediaTab === 'reparto' || mediaTab === 'equipo') && credits) return
+    if (mediaTab === 'similares' && similar) return
+
+    const controller = new AbortController()
+    let active = true
+    setMediaLoading(true)
+    setMediaError('')
+    const requestData = mediaTab === 'similares'
+      ? getSimilarSeries(id, controller.signal)
+      : getSeriesCredits(id, controller.signal)
+
+    requestData.then((data) => {
+      if (!active) return
+      if (mediaTab === 'similares') setSimilar(data)
+      else setCredits(data)
+    }).catch((err) => {
+      if (active && err.name !== 'AbortError') {
+        console.error('No se pudo cargar la sección de TMDB:', err)
+        setMediaError('No pudimos cargar esta información. Intentá cambiar de pestaña y volver.')
+      }
+    }).finally(() => { if (active) setMediaLoading(false) })
+
+    return () => { active = false; controller.abort() }
+  }, [id, mediaTab, credits, similar])
 
   function openNewReview() {
     setEditingReviewId(null)
@@ -424,10 +601,20 @@ export default function SeriesDetails() {
             <div className="details-description">
               <h2 className="section-title">Sinopsis</h2>
 
-              <p className="details-overview">
+              <p className={`details-overview ${synopsisExpanded ? 'expanded' : ''}`}>
                 {series.overview ||
                   'Todavía no hay sinopsis disponible en español para esta serie.'}
               </p>
+              {series.overview?.length > 230 && (
+                <button
+                  className="details-read-more"
+                  type="button"
+                  aria-expanded={synopsisExpanded}
+                  onClick={() => setSynopsisExpanded((value) => !value)}
+                >
+                  {synopsisExpanded ? 'Leer menos' : 'Leer más'}
+                </button>
+              )}
 
               {creators && (
                 <p className="card-meta">Creada por {creators}</p>
@@ -481,87 +668,84 @@ export default function SeriesDetails() {
         </div>
       </section>
 
-      <div className={`details-lower-layout${trailer ? ' has-trailer' : ''}`}>
-      <section className="details-section detail-actions-section">
-        <h2 className="section-title">Tu biblioteca</h2>
-
-        <div className="detail-actions detail-actions-centered">
-          <button
-            className={`detail-btn ${watched ? 'on' : ''}`}
-            type="button"
-            onClick={() => toggleWatched(series)}
-            aria-pressed={watched}
-            aria-label={watched ? 'Quitar de Ya la vi' : 'Marcar como vista'}
-            title={watched ? 'Quitar de Ya la vi' : 'Marcar como vista'}
-          >
-            <span aria-hidden="true">{watched ? '◉' : '◎'}</span>
-            Ya la vi
-          </button>
-
-          <button
-            className={`detail-btn ${fav ? 'on' : ''}`}
-            type="button"
-            onClick={() => toggleFavorite(series)}
-            aria-pressed={fav}
-            aria-label={fav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-          >
-            <span aria-hidden="true">{fav ? '♥' : '♡'}</span>
-            Favoritos
-          </button>
-
-          <button
-            className={`detail-btn ${later ? 'on' : ''}`}
-            type="button"
-            onClick={() => toggleWatchlist(series)}
-            aria-pressed={later}
-            aria-label={later ? 'Quitar de Quiero ver' : 'Agregar a Quiero ver'}
-          >
-            <span aria-hidden="true">{later ? '✓' : '+'}</span>
-            Quiero ver
-          </button>
-
-          <button
-            className={`detail-btn ${watching ? 'on' : ''}`}
-            type="button"
-            onClick={() => toggleWatching(series)}
-            aria-pressed={watching}
-            aria-label={
-              watching
-                ? 'Quitar de La estoy viendo'
-                : 'Marcar como La estoy viendo'
-            }
-          >
-            <span aria-hidden="true">{watching ? '▶' : '▷'}</span>
-            La estoy viendo
-          </button>
-
-          <button
-            className="detail-btn"
-            type="button"
-            onClick={openNewReview}
-          >
-            <span aria-hidden="true">✎</span>
-            Reseñar
-          </button>
-        </div>
-      </section>
-
-      {trailer && (
-        <section className="details-section details-trailer-section">
-          <h2 className="section-title">Tráiler</h2>
-
-          <div className="trailer">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${trailer.key}`}
-              title={`Tráiler de ${series.name}`}
-              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              loading="lazy"
-            />
+      <div className="details-lower-layout details-media-layout">
+        <section className="details-section detail-actions-section" aria-label="Acciones de biblioteca">
+          <div className="detail-library-actions">
+            <button type="button" className={`detail-library-action ${watching ? 'on' : ''}`}
+              onClick={() => toggleWatching(series)} aria-pressed={watching}>
+              <DetailIcon name="play" active={watching} />
+              <span>La estoy viendo</span>
+            </button>
+            <button type="button" className={`detail-library-action ${watched ? 'on' : ''}`}
+              onClick={() => toggleWatched(series)} aria-pressed={watched}>
+              <DetailIcon name="eye" active={watched} />
+              <span>Ya la vi</span>
+            </button>
+            <button type="button" className={`detail-library-action ${later ? 'on' : ''}`}
+              onClick={() => toggleWatchlist(series)} aria-pressed={later}>
+              <DetailIcon name="clock" active={later} />
+              <span>Quiero ver</span>
+            </button>
+            <button type="button" className={`detail-library-action ${fav ? 'on' : ''}`}
+              onClick={() => toggleFavorite(series)} aria-pressed={fav}>
+              <DetailIcon name="heart" active={fav} />
+              <span>Favoritos</span>
+            </button>
+            <button type="button" className="detail-library-action" onClick={openNewReview}>
+              <DetailIcon name="pencil" />
+              <span>Reseñar</span>
+            </button>
           </div>
         </section>
-      )}
 
+        <section className="details-section details-media-section" aria-label="Contenido adicional de la serie">
+          <div className="detail-media-tabs" role="tablist" aria-label="Información de la serie">
+            {[
+              ['trailer', 'Tráiler'],
+              ['reparto', 'Reparto'],
+              ['equipo', 'Equipo'],
+              ['similares', 'Series similares'],
+            ].map(([key, label]) => (
+              <button key={key} type="button" role="tab"
+                id={`detail-tab-${key}`} aria-controls="detail-media-panel"
+                aria-selected={mediaTab === key}
+                className={mediaTab === key ? 'active' : ''}
+                onClick={() => setMediaTab(key)}>{label}</button>
+            ))}
+          </div>
+          <div className="detail-media-panel" id="detail-media-panel" role="tabpanel"
+            aria-labelledby={`detail-tab-${mediaTab}`}>
+            {mediaTab === 'trailer' && (
+              trailer ? (
+                <div className="trailer">
+                  <iframe src={`https://www.youtube-nocookie.com/embed/${trailer.key}`}
+                    title={`Tráiler de ${series.name}`}
+                    allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen loading="lazy"/>
+                </div>
+              ) : <p className="empty">No encontramos un tráiler disponible para esta serie.</p>
+            )}
+
+            {mediaTab !== 'trailer' && mediaLoading && (
+              <p className="message">Cargando información de TMDB…</p>
+            )}
+            {mediaTab !== 'trailer' && !mediaLoading && mediaError && (
+              <p className="message error" role="alert">{mediaError}</p>
+            )}
+            {mediaTab === 'reparto' && !mediaLoading && !mediaError && credits && (
+              <PeopleCarousel people={[...credits.cast].sort((a, b) => (a.order ?? 999) - (b.order ?? 999))} mode="cast"/>
+            )}
+            {mediaTab === 'equipo' && !mediaLoading && !mediaError && credits && (
+              <PeopleCarousel people={credits.crew} mode="crew"/>
+            )}
+            {mediaTab === 'similares' && !mediaLoading && !mediaError && similar && (
+              <>
+                <h2 className="detail-similar-title">Podría interesarte...</h2>
+                <SimilarSeries items={similar}/>
+              </>
+            )}
+          </div>
+        </section>
       </div>
 
       {reviewMessage && (
