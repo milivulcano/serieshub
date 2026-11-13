@@ -2970,6 +2970,7 @@ main.container {
 .details-hero .details-overview:not(.expanded) {
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   overflow: hidden;
 }
@@ -3009,6 +3010,7 @@ main.container {
 .detail-people-grid .detail-person-card > span {
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -3040,7 +3042,7 @@ main.container {
     overflow: visible;
     padding-right: 0;
   }
-  .details-hero .details-overview:not(.expanded) { -webkit-line-clamp: 5; }
+  .details-hero .details-overview:not(.expanded) { line-clamp: 5; -webkit-line-clamp: 5; }
 }
 @media (prefers-reduced-motion: reduce) {
   .detail-people-track { transition: none; }
