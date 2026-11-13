@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getSeriesDetails, posterUrl } from '../services/tmdb'
 import { deleteReview, getCurrentUserId, getReviewById, updateReview } from '../services/reviews'
 import { useLists } from '../context/ListsContext'
@@ -75,7 +75,7 @@ export default function ReviewDetails() {
   function goBack() {
     if (location.state?.from) navigate(location.state.from)
     else if (window.history.state?.idx > 0) navigate(-1)
-    else navigate('/perfil?tab=actividad')
+    else navigate('/perfil?tab=diario')
   }
 
   function openEditor() {
@@ -147,7 +147,7 @@ export default function ReviewDetails() {
     setMessage('')
     try {
       await deleteReview(review.id)
-      navigate('/perfil?tab=actividad', { replace: true })
+      navigate('/perfil?tab=diario', { replace: true })
     } catch (err) {
       console.error('Error al eliminar la reseña:', err)
       setMessage('No se pudo eliminar la reseña. Intentá nuevamente.')
@@ -171,9 +171,14 @@ export default function ReviewDetails() {
 
       <article className="review-details-card">
         <div className="review-modal-layout">
-          <div className="review-modal-poster">
+          <Link
+            to={`/serie/${review.seriesId}`}
+            className="review-modal-poster review-details-poster-link"
+            aria-label={`Ir al detalle de ${review.seriesName}`}
+            title={`Ver ${review.seriesName}`}
+          >
             {poster ? <img src={poster} alt={`Póster de ${review.seriesName}`} /> : <div className="no-poster">Sin póster</div>}
-          </div>
+          </Link>
           <div className="review-modal-content">
             <h1 className="review-details-title">
               {review.seriesName}{year && <span className="details-year"> ({year})</span>}
@@ -190,8 +195,34 @@ export default function ReviewDetails() {
             {isOwner && (
               <div className="review-details-actions">
                 <button type="button" className="review-details-edit" onClick={openEditor}>✎ Editar</button>
-                <button type="button" className="review-details-delete" onClick={handleDelete} disabled={deleting}>
-                  {deleting ? 'Eliminando…' : 'Eliminar'}
+                <button
+                  type="button"
+                  className="review-icon-button review-delete review-details-delete"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  aria-label={deleting ? 'Eliminando reseña' : 'Eliminar reseña'}
+                  title={deleting ? 'Eliminando reseña…' : 'Eliminar reseña'}
+                >
+                  {deleting ? '…' : (
+                    <svg
+                      width="19"
+                      height="19"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+                      <path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                  )}
                 </button>
               </div>
             )}

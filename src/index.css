@@ -3045,3 +3045,132 @@ main.container {
 @media (prefers-reduced-motion: reduce) {
   .detail-people-track { transition: none; }
 }
+/* ===== Ajustes finales: ficha, Diario y búsqueda global ===== */
+/* La imagen de fondo se desvanece sin afectar la legibilidad de los textos. */
+.details-hero {
+  position: relative;
+  isolation: isolate;
+  background-image: none !important;
+  background-color: var(--surface);
+}
+.details-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--detail-backdrop, none);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: .65;
+  -webkit-mask-image: radial-gradient(ellipse 88% 95% at 50% 45%, #000 37%, transparent 100%);
+  mask-image: radial-gradient(ellipse 88% 95% at 50% 45%, #000 37%, transparent 100%);
+}
+.details-hero .details-hero-inner {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(90deg, rgba(21,22,30,.94), rgba(21,22,30,.73) 62%, rgba(21,22,30,.83));
+}
+/* Mantiene el ancho del Diario y alinea sus elementos al borde izquierdo. */
+.profile-activity-list {
+  margin-left: 0;
+  margin-right: 0;
+}
+.review-details-poster-link {
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.review-details-poster-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+.review-details-poster-link:focus-visible { outline-offset: 4px; }
+/* Lupa desplegable en el encabezado. */
+.header-search-area { position: relative; display: flex; align-items: center; }
+.header-search-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.header-search-toggle:hover, .header-search-toggle.is-open {
+  color: var(--accent);
+  background: var(--surface-2);
+}
+.header-search-toggle svg { width: 21px; height: 21px; }
+.header-search-popover {
+  position: absolute;
+  top: calc(100% + 13px);
+  right: -85px;
+  z-index: 50;
+  width: min(380px, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid #454655;
+  border-radius: var(--radius);
+  background: #20222d;
+  box-shadow: 0 16px 42px rgba(0,0,0,.48);
+}
+.header-search-popover label { display: block; margin-bottom: .5rem; font-size: .9rem; font-weight: 700; }
+.header-search-popover input {
+  display: block;
+  width: 100%;
+  padding: .7rem .85rem;
+  border: 1px solid var(--surface-2);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+.header-search-popover input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.header-search-hint { padding: .75rem .2rem 0; color: var(--muted); font-size: .86rem; }
+.header-search-results { margin: .75rem 0 0; padding: 0; list-style: none; max-height: 355px; overflow-y: auto; }
+.header-search-results li + li { border-top: 1px solid var(--surface-2); }
+.header-search-results button {
+  display: flex; width: 100%; align-items: center; gap: .7rem;
+  padding: .55rem .2rem; border: 0; border-radius: 7px;
+  background: transparent; color: var(--text); text-align: left; cursor: pointer;
+}
+.header-search-results button:hover, .header-search-results button:focus-visible { background: var(--surface-2); }
+.header-search-results img, .header-search-no-poster {
+  width: 40px; height: 60px; flex: 0 0 40px;
+  border-radius: 5px; object-fit: cover; background: var(--bg);
+}
+.header-search-no-poster { display: grid; place-items: center; color: var(--muted); font-size: .8rem; }
+.header-search-results button > span:last-child { display: flex; flex-direction: column; min-width: 0; gap: .15rem; }
+.header-search-results strong { font-size: .9rem; overflow-wrap: anywhere; }
+.header-search-results small { font-size: .78rem; color: var(--muted); }
+@media (max-width: 600px) {
+  .header-search-popover { right: -75px; }
+}
+@media (max-width: 420px) {
+  .header-search-popover { right: -80px; width: min(330px, calc(100vw - 1.5rem)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .review-details-poster-link { transition: none; }
+}
+
+/* Detalle de reseña: el botón de eliminar comparte el tachito del Diario. */
+.review-details-actions .review-icon-button.review-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border, #444);
+  border-radius: 8px;
+  background: transparent;
+  color: #ff9b9b;
+  flex: 0 0 36px;
+}
+.review-details-actions .review-icon-button.review-delete:hover {
+  color: #ff5b65;
+  border-color: #ff5b65;
+  background: rgba(128, 128, 128, 0.16);
+}

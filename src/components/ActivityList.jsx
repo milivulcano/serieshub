@@ -60,7 +60,7 @@ export default function ActivityList({ reviews, favorites, watched, onEdit, onDe
 
             <Link
               to={`/resena/${review.id}`}
-              state={{ from: '/perfil?tab=actividad' }}
+              state={{ from: '/perfil?tab=diario' }}
               className="profile-activity-poster"
               aria-label={`Leer reseña de ${review.seriesName}`}
             >
@@ -70,7 +70,7 @@ export default function ActivityList({ reviews, favorites, watched, onEdit, onDe
             <div className="profile-activity-info">
               <Link
                 to={`/resena/${review.id}`}
-                state={{ from: '/perfil?tab=actividad' }}
+                state={{ from: '/perfil?tab=diario' }}
                 className="profile-activity-name"
               >
                 {review.seriesName}
@@ -86,7 +86,32 @@ export default function ActivityList({ reviews, favorites, watched, onEdit, onDe
 
             <div className="profile-activity-actions">
               <button type="button" className="review-icon-button" onClick={() => onEdit(review)} aria-label={`Editar reseña de ${review.seriesName}`} title="Editar reseña">✎</button>
-              <button type="button" className="review-icon-button review-delete" onClick={() => onDelete(review.id)} aria-label={`Eliminar reseña de ${review.seriesName}`} title="Eliminar reseña">♲</button>
+              <button
+                type="button"
+                className="review-icon-button review-delete"
+                onClick={() => onDelete(review.id)}
+                aria-label={`Eliminar reseña de ${review.seriesName}`}
+                title="Eliminar reseña"
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+                  <path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                </svg>
+              </button>
             </div>
           </article>
         )

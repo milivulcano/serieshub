@@ -26,7 +26,7 @@ import {
 
 const tabs = [
   { id: 'perfil', label: 'Perfil' },
-  { id: 'actividad', label: 'Actividad' },
+  { id: 'diario', label: 'Diario' },
   { id: 'series', label: 'Series' },
   { id: 'pendientes', label: 'Pendientes' },
   { id: 'viendo', label: 'Viendo' },
@@ -61,9 +61,11 @@ export default function Profile() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const requestedTab = searchParams.get('tab')
-  const activeTab = validTabs.includes(requestedTab)
-    ? requestedTab
-    : 'perfil'
+  const activeTab = requestedTab === 'actividad'
+    ? 'diario' // Compatibilidad con enlaces anteriores.
+    : validTabs.includes(requestedTab)
+      ? requestedTab
+      : 'perfil'
 
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -1040,7 +1042,7 @@ export default function Profile() {
                 watched={watched}
                 loading={!reviewsReady}
                 error={reviewsError}
-                onViewAll={() => selectTab('actividad')}
+                onViewAll={() => selectTab('diario')}
               />
             </div>
 
@@ -1050,9 +1052,9 @@ export default function Profile() {
           </div>
         )}
 
-        {activeTab === 'actividad' && (
+        {activeTab === 'diario' && (
           <section>
-            <h2 className="section-title">Actividad</h2>
+            <h2 className="section-title">Diario</h2>
 
             {!reviewsReady && (
               <p className="empty">Cargando tus reseñas...</p>
@@ -1076,7 +1078,13 @@ export default function Profile() {
 
             {reviewsReady && !reviewsError && reviews.length > 0 && (
               <ActivityList
-                reviews={reviews}
+                reviews={[...reviews].sort((a, b) => {
+                  // Fecha de visualización, no fecha de publicación de la reseña.
+                  // ISO yyyy-mm-dd mantiene orden cronológico con comparación de texto.
+                  const da = /^\d{4}-\d{2}-\d{2}$/.test(a.watchedAt ?? '') ? a.watchedAt : ''
+                  const db = /^\d{4}-\d{2}-\d{2}$/.test(b.watchedAt ?? '') ? b.watchedAt : ''
+                  return db.localeCompare(da)
+                })}
                 favorites={favorites}
                 watched={watched}
                 onEdit={openEditReview}
