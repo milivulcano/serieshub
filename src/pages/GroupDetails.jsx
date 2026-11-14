@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import GroupChat from '../components/GroupChat'
+import ForumIconPicker from '../components/ForumIconPicker'
+import { DEFAULT_FORUM_ICON, forumIconForGroup, forumIconUrl } from '../services/visualAssets'
 import {
   editGroup,
   getCurrentGroupUserId,
@@ -25,6 +27,7 @@ export default function GroupDetails() {
   const [title, setTitle] = useState('')
   const [topic, setTopic] = useState('')
   const [description, setDescription] = useState('')
+  const [icon, setIcon] = useState(DEFAULT_FORUM_ICON)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const [success, setSuccess] = useState('')
@@ -86,6 +89,7 @@ export default function GroupDetails() {
     setTitle(group.title)
     setTopic(group.topic)
     setDescription(group.description)
+    setIcon(forumIconForGroup(group))
     setFormError('')
     setSuccess('')
     setEditing(true)
@@ -96,8 +100,8 @@ export default function GroupDetails() {
     setSaving(true)
     setFormError('')
     try {
-      await editGroup(groupId, { title, topic, description })
-      setGroup((current) => ({ ...current, title: title.trim(), topic: topic.trim(), description: description.trim() }))
+      await editGroup(groupId, { title, topic, description, icon })
+      setGroup((current) => ({ ...current, title: title.trim(), topic: topic.trim(), description: description.trim(), icon }))
       setEditing(false)
       setSuccess('¡Foro actualizado!')
     } catch (err) {
@@ -131,7 +135,7 @@ export default function GroupDetails() {
         <>
           <header className="forum-header">
             <div className="forum-header-main">
-              <span className="home-forum-icon" aria-hidden="true">{group.icon || '✦'}</span>
+              <span className="home-forum-icon" aria-hidden="true"><img src={forumIconUrl(forumIconForGroup(group))} alt="" /></span>
               <div>
                 <span className="home-forum-topic">{group.topic}</span>
                 <h1>{group.title}</h1>
@@ -165,6 +169,7 @@ export default function GroupDetails() {
               <input id="edit-group-topic" required minLength={3} maxLength={35} value={topic} onChange={(e) => setTopic(e.target.value)} />
               <label htmlFor="edit-group-description">Descripción</label>
               <textarea id="edit-group-description" required minLength={10} maxLength={300} rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+              <ForumIconPicker value={icon} onChange={setIcon} />
               {formError && <p className="message error" role="alert">{formError}</p>}
               <div className="group-details-actions">
                 <button type="submit" className="group-primary-button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>

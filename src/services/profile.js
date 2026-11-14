@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_STYLE, DEFAULT_AVATAR_COLOR } from './visualAssets'
 import { db, authReady } from '../firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 
@@ -20,6 +21,8 @@ export async function getProfile() {
       description: '',
       avatarPath: '',
       avatarName: '',
+      avatarStyle: DEFAULT_AVATAR_STYLE,
+      avatarColor: DEFAULT_AVATAR_COLOR,
       topFavorites: [],
     }
   }
@@ -31,6 +34,8 @@ export async function getProfile() {
     description: profile.description ?? '',
     avatarPath: profile.avatarPath ?? '',
     avatarName: profile.avatarName ?? '',
+    avatarStyle: profile.avatarStyle ?? DEFAULT_AVATAR_STYLE,
+    avatarColor: profile.avatarColor ?? DEFAULT_AVATAR_COLOR,
     topFavorites: Array.isArray(profile.topFavorites)
       ? profile.topFavorites.slice(0, 4)
       : [],
@@ -50,6 +55,8 @@ export async function saveProfile(profileData) {
 
     avatarPath: String(profileData.avatarPath ?? ''),
     avatarName: String(profileData.avatarName ?? ''),
+    avatarStyle: String(profileData.avatarStyle ?? DEFAULT_AVATAR_STYLE),
+    avatarColor: String(profileData.avatarColor ?? DEFAULT_AVATAR_COLOR),
 
     topFavorites: Array.isArray(profileData.topFavorites)
       ? profileData.topFavorites.slice(0, 4)

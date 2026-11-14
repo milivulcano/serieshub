@@ -78,7 +78,7 @@ export default function Header() {
       <header className="header">
         <div className="container header-inner">
           <Link to="/" className="logo" onClick={closeSearch}>
-            SeriesHub
+            <img src="/assets/logos/isologo-serieshub.svg" alt="SeriesHub" className="site-isologo" />
           </Link>
 
           <nav className="nav main-nav" aria-label="Navegación principal">

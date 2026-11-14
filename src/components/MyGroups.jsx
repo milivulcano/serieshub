@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getMyGroups } from '../services/groups'
+import { forumIconForGroup, forumIconUrl } from '../services/visualAssets'
 
 export default function MyGroups() {
   const [groups, setGroups] = useState([])
@@ -45,7 +46,7 @@ export default function MyGroups() {
         <div className="profile-my-groups-list">
           {groups.map((group) => (
             <Link className="profile-my-group-link" to={`/grupo/${group.id}`} key={group.id}>
-              <span className="profile-my-group-icon" aria-hidden="true">{group.icon || '✦'}</span>
+              <span className="profile-my-group-icon" aria-hidden="true"><img src={forumIconUrl(forumIconForGroup(group))} alt="" /></span>
               <span className="profile-my-group-info">
                 <strong>{group.title}</strong>
                 <small>{group.topic}</small>

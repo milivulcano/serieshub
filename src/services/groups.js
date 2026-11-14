@@ -1,3 +1,4 @@
+import { DEFAULT_FORUM_ICON, FORUM_ICONS } from './visualAssets'
 import {
   collection,
   deleteDoc,
@@ -27,7 +28,8 @@ function cleanGroup(data) {
   if (topic.length < 3 || topic.length > 35) {
     throw new Error('La temática debe tener entre 3 y 35 caracteres.')
   }
-  return { title, description, topic }
+  const icon = FORUM_ICONS.includes(data.icon) ? data.icon : DEFAULT_FORUM_ICON
+  return { title, description, topic, icon }
 }
 
 async function currentUid() {
@@ -71,7 +73,6 @@ export async function createGroup(data) {
   // El foro empieza sin publicaciones y su creador queda siguiéndolo.
   await setDoc(groupRef, {
     ...cleanGroup(data),
-    icon: '✦',
     ownerId: userId,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

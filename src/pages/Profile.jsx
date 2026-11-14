@@ -4,12 +4,11 @@ import { useSearchParams } from 'react-router-dom'
 import {
   getSeriesDetails,
   posterUrl,
-  profileUrl,
-  searchPeople,
   searchSeries,
 } from '../services/tmdb'
 
 import { getProfile, saveProfile } from '../services/profile'
+import { AVATAR_STYLES, AVATAR_COLORS, avatarAssetUrl, DEFAULT_AVATAR_STYLE, DEFAULT_AVATAR_COLOR } from '../services/visualAssets'
 import SeriesCard from '../components/SeriesCard'
 import { useLists } from '../context/ListsContext'
 import ProfileListSection from '../components/ProfileListSection'
@@ -78,10 +77,8 @@ export default function Profile() {
   const [avatarPath, setAvatarPath] = useState('')
   const [avatarName, setAvatarName] = useState('')
 
-  const [peopleQuery, setPeopleQuery] = useState('')
-  const [peopleResults, setPeopleResults] = useState([])
-  const [searchingPeople, setSearchingPeople] = useState(false)
-  const [peopleError, setPeopleError] = useState('')
+  const [avatarStyle, setAvatarStyle] = useState(DEFAULT_AVATAR_STYLE)
+  const [avatarColor, setAvatarColor] = useState(DEFAULT_AVATAR_COLOR)
 
   const [topFavorites, setTopFavorites] = useState([])
   const [activeSlot, setActiveSlot] = useState(null)
@@ -123,6 +120,8 @@ export default function Profile() {
           setDescription(data.description)
           setAvatarPath(data.avatarPath)
           setAvatarName(data.avatarName)
+          setAvatarStyle(data.avatarStyle ?? DEFAULT_AVATAR_STYLE)
+          setAvatarColor(data.avatarColor ?? DEFAULT_AVATAR_COLOR)
           setTopFavorites(data.topFavorites ?? [])
         }
       } catch (err) {
@@ -142,49 +141,6 @@ export default function Profile() {
       active = false
     }
   }, [])
-
-  useEffect(() => {
-    if (!editing || peopleQuery.trim().length < 2) {
-      setPeopleResults([])
-      setPeopleError('')
-      setSearchingPeople(false)
-      return
-    }
-
-    const controller = new AbortController()
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        setSearchingPeople(true)
-        setPeopleError('')
-
-        const results = await searchPeople(
-          peopleQuery.trim(),
-          controller.signal
-        )
-
-        if (!controller.signal.aborted) {
-          setPeopleResults(results ?? [])
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.error('Error al buscar personas:', err)
-          setPeopleError(
-            'No pudimos realizar la búsqueda. Intentá nuevamente.'
-          )
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setSearchingPeople(false)
-        }
-      }
-    }, 400)
-
-    return () => {
-      clearTimeout(timeoutId)
-      controller.abort()
-    }
-  }, [peopleQuery, editing])
 
   useEffect(() => {
     if (
@@ -309,11 +265,10 @@ export default function Profile() {
     setDescription(profile.description)
     setAvatarPath(profile.avatarPath)
     setAvatarName(profile.avatarName)
+    setAvatarStyle(profile.avatarStyle ?? DEFAULT_AVATAR_STYLE)
+    setAvatarColor(profile.avatarColor ?? DEFAULT_AVATAR_COLOR)
     setTopFavorites(profile.topFavorites ?? [])
 
-    setPeopleQuery('')
-    setPeopleResults([])
-    setPeopleError('')
 
     setActiveSlot(null)
     setSeriesQuery('')
@@ -330,11 +285,10 @@ export default function Profile() {
     setDescription(profile.description)
     setAvatarPath(profile.avatarPath)
     setAvatarName(profile.avatarName)
+    setAvatarStyle(profile.avatarStyle ?? DEFAULT_AVATAR_STYLE)
+    setAvatarColor(profile.avatarColor ?? DEFAULT_AVATAR_COLOR)
     setTopFavorites(profile.topFavorites ?? [])
 
-    setPeopleQuery('')
-    setPeopleResults([])
-    setPeopleError('')
 
     setActiveSlot(null)
     setSeriesQuery('')
@@ -345,16 +299,14 @@ export default function Profile() {
     setEditing(false)
   }
 
-  function selectAvatar(person) {
-    setAvatarPath(person.profile_path)
-    setAvatarName(person.name)
-
-    setPeopleQuery('')
-    setPeopleResults([])
-    setPeopleError('')
+  function selectAvatarStyle(style) {
+    setAvatarStyle(style)
+    setAvatarPath('')
+    setAvatarName('')
   }
 
-  function removeAvatar() {
+  function selectAvatarColor(color) {
+    setAvatarColor(color)
     setAvatarPath('')
     setAvatarName('')
   }
@@ -451,6 +403,8 @@ export default function Profile() {
         description,
         avatarPath,
         avatarName,
+        avatarStyle,
+        avatarColor,
         topFavorites,
       })
 
@@ -459,11 +413,11 @@ export default function Profile() {
       setDescription(updatedProfile.description)
       setAvatarPath(updatedProfile.avatarPath)
       setAvatarName(updatedProfile.avatarName)
+      setAvatarStyle(updatedProfile.avatarStyle)
+      setAvatarColor(updatedProfile.avatarColor)
       setTopFavorites(updatedProfile.topFavorites)
 
       setEditing(false)
-      setPeopleQuery('')
-      setPeopleResults([])
       setActiveSlot(null)
       setSeriesQuery('')
       setSeriesResults([])
@@ -621,8 +575,10 @@ export default function Profile() {
     return <p className="message">No encontramos los datos del perfil.</p>
   }
 
-  const currentAvatar = profileUrl(profile.avatarPath)
-  const editingAvatar = profileUrl(avatarPath)
+  const currentAvatar = profile.avatarPath
+    ? `https://image.tmdb.org/t/p/w185${profile.avatarPath}`
+    : avatarAssetUrl(profile.avatarStyle, profile.avatarColor)
+  const editingAvatar = avatarAssetUrl(avatarStyle, avatarColor)
 
   const topFavoriteSlots = Array.from(
     { length: MAX_TOP_FAVORITES },
@@ -633,14 +589,7 @@ export default function Profile() {
     <section className="profile-page">
       <div className="profile-header">
         <div className="profile-avatar">
-          {currentAvatar ? (
-            <img
-              src={currentAvatar}
-              alt={`Foto de ${profile.avatarName || profile.username}`}
-            />
-          ) : (
-            <span aria-hidden="true">👤</span>
-          )}
+          <img src={currentAvatar} alt={`Avatar de ${profile.username}`} />
         </div>
 
         <div className="profile-info">
@@ -718,99 +667,34 @@ export default function Profile() {
             </div>
 
             <div className="profile-editor-field">
-              <label>Foto de perfil (opcional)</label>
-
+              <label>Elegí tu avatar</label>
               <div className="profile-avatar-editor">
                 <div className="profile-avatar profile-avatar-preview">
-                  {editingAvatar ? (
-                    <img
-                      src={editingAvatar}
-                      alt={`Foto de ${avatarName || 'perfil'}`}
-                    />
-                  ) : (
-                    <span aria-hidden="true">👤</span>
-                  )}
+                  <img src={editingAvatar} alt="Vista previa del avatar seleccionado" />
                 </div>
-
-                <div className="profile-avatar-actions">
-                  <p>
-                    {avatarName
-                      ? `Imagen de ${avatarName}`
-                      : 'Todavía no elegiste una imagen.'}
-                  </p>
-
-                  {avatarPath && (
-                    <button
-                      type="button"
-                      className="profile-remove-avatar"
-                      onClick={removeAvatar}
-                    >
-                      Quitar foto
-                    </button>
-                  )}
-                </div>
+                <p className="avatar-editor-help">Seleccioná una expresión y un color. Los cambios se verán en la vista previa.</p>
               </div>
-
-              <label htmlFor="profile-people-search">
-                Buscar actor o actriz en TMDB
-              </label>
-
-              <input
-                id="profile-people-search"
-                type="search"
-                value={peopleQuery}
-                onChange={(event) => setPeopleQuery(event.target.value)}
-                placeholder="Ej.: Pedro Pascal…"
-              />
-
-              <small>
-                Escribí al menos dos caracteres para buscar personas.
-              </small>
-
-              {searchingPeople && (
-                <p className="message">Buscando personas…</p>
-              )}
-
-              {peopleError && <p className="error">{peopleError}</p>}
-
-              {!searchingPeople &&
-                peopleQuery.trim().length >= 2 &&
-                peopleResults.filter((person) => person.profile_path)
-                  .length === 0 &&
-                !peopleError && (
-                  <p className="message">
-                    No encontramos personas con ese nombre.
-                  </p>
-                )}
-
-              {peopleResults.filter((person) => person.profile_path)
-                .length > 0 && (
-                <div className="profile-people-results">
-                  {peopleResults
-                    .filter((person) => person.profile_path)
-                    .map((person) => (
-                      <button
-                        key={person.id}
-                        type="button"
-                        className="profile-person-option"
-                        onClick={() => selectAvatar(person)}
-                      >
-                        <img
-                          src={profileUrl(person.profile_path, 'w92')}
-                          alt=""
-                          loading="lazy"
-                        />
-
-                        <span>
-                          <strong>{person.name}</strong>
-                          <small>
-                            {person.known_for_department || 'Artista'}
-                          </small>
-                        </span>
-                      </button>
-                    ))}
-                </div>
-              )}
+              <div className="avatar-style-picker" role="group" aria-label="Expresión del avatar">
+                {AVATAR_STYLES.map(({ id, label }) => (
+                  <button type="button" key={id}
+                    aria-label={label} title={label}
+                    aria-pressed={avatarStyle === id}
+                    className={`avatar-style-choice${avatarStyle === id ? ' is-selected' : ''}`}
+                    onClick={() => selectAvatarStyle(id)}>
+                    <img src={avatarAssetUrl(id, avatarColor)} alt="" />
+                  </button>
+                ))}
+              </div>
+              <div className="avatar-color-picker" role="group" aria-label="Color del avatar">
+                {AVATAR_COLORS.map(({ id, label, hex }) => (
+                  <button type="button" key={id}
+                    title={label} aria-label={label}
+                    aria-pressed={avatarColor === id}
+                    className={`avatar-color-choice${avatarColor === id ? ' is-selected' : ''}`}
+                    style={{ '--avatar-color': hex }}
+                    onClick={() => selectAvatarColor(id)} />
+                ))}
+              </div>
             </div>
 
             <div className="profile-editor-field">

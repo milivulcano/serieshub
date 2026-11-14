@@ -1,11 +1,11 @@
 /* ===== Tokens: identidad visual ===== */
 :root {
-  --bg: #15161e;
-  --surface: #20222d;
-  --surface-2: #2a2d3b;
-  --text: #eceaf4;
-  --muted: #9d9bb0;
-  --accent: #ff7a8f;
+  --bg: #171b33;
+  --surface: #202640;
+  --surface-2: #2d3653;
+  --text: #f6f7fb;
+  --muted: #b4bed3;
+  --accent: #7bc7c0;
   --radius: 12px;
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
@@ -545,7 +545,7 @@ main.container {
 
 .review-card {
   padding: 1.25rem;
-  background: #171923;
+  background: #141a30;
   border: 1px solid #303342;
   border-radius: var(--radius);
 }
@@ -652,7 +652,7 @@ main.container {
   padding: 2rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
-  background: #171923;
+  background: #141a30;
   color: #fff;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
@@ -735,8 +735,8 @@ main.container {
   width: 100%;
   padding: 0.8rem;
   color: #f5f5f7;
-  background: #101116;
-  border: 1px solid #393d4e;
+  background: #12172b;
+  border: 1px solid var(--surface-2);
   border-radius: 8px;
   font: inherit;
   resize: vertical;
@@ -791,7 +791,7 @@ main.container {
 }
 
 .review-star-button.selected {
-  color: #f5b82e;
+  color: #ffd93d;
 }
 
 .review-star-button:hover:not(:disabled) {
@@ -799,7 +799,7 @@ main.container {
 }
 
 .review-star-button:focus-visible {
-  outline: 2px solid #f5b82e;
+  outline: 2px solid #ffd93d;
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -830,8 +830,8 @@ main.container {
 }
 
 .review-favorite-button.on {
-  color: #ff5b82;
-  border-color: #ff5b82;
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Fecha de la reseña: etiqueta y calendario en la misma línea */
@@ -851,8 +851,8 @@ main.container {
   min-width: 150px;
   padding: 0.55rem 0.7rem;
   color: #f5f5f7;
-  background: #101116;
-  border: 1px solid #393d4e;
+  background: #12172b;
+  border: 1px solid var(--surface-2);
   border-radius: 8px;
   font: inherit;
   color-scheme: dark;
@@ -1270,57 +1270,6 @@ main.container {
   color: #ff9b9b;
   cursor: pointer;
   text-decoration: underline;
-}
-
-/* ===== Resultados de búsqueda de personas ===== */
-.profile-people-results {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 0.7rem;
-  margin-top: 0.5rem;
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.profile-person-option {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.55rem;
-  border: 1px solid var(--surface-2);
-  border-radius: 9px;
-  background: var(--bg);
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.profile-person-option:hover {
-  border-color: var(--accent);
-  background: var(--surface-2);
-}
-
-.profile-person-option img {
-  width: 48px;
-  height: 60px;
-  flex-shrink: 0;
-  object-fit: cover;
-  border-radius: 6px;
-  background: var(--surface-2);
-}
-
-.profile-person-option span {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.profile-person-option strong {
-  overflow-wrap: anywhere;
-}
-
-.profile-person-option small {
-  color: var(--muted);
 }
 
 /* ===== Botones del editor ===== */
@@ -1923,7 +1872,7 @@ main.container {
 }
 
 .profile-recent-heart {
-  color: #ff5b82;
+  color: var(--accent);
   font-size: 1.1rem;
   line-height: 1;
 }
@@ -1965,7 +1914,7 @@ main.container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #85a0bb;
+  color: #9dbec9;
   line-height: 1.15;
 }
 .profile-activity-date span {
@@ -2034,7 +1983,7 @@ main.container {
   padding: 1.6rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  background: #171923;
+  background: #141a30;
 }
 .review-details-card .review-modal-layout {
   grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
@@ -2073,7 +2022,7 @@ main.container {
   letter-spacing: 0.05rem;
 }
 .review-details-heart {
-  color: #ff5b82;
+  color: var(--accent);
   font-size: 1.25rem;
   line-height: 1;
 }
@@ -2393,7 +2342,7 @@ main.container {
 .group-form textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #393d4e;
+  border: 1px solid var(--surface-2);
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
@@ -2430,7 +2379,7 @@ main.container {
   padding: clamp(1.25rem, 4vw, 2rem);
   border: 1px solid var(--surface-2);
   border-radius: 16px;
-  background: #171923;
+  background: #141a30;
 }
 
 .group-details-heading {
@@ -2669,7 +2618,7 @@ main.container {
 .forum-post-compose { display: flex; flex-direction: column; gap: .7rem; padding: 1.3rem; margin-bottom: 1.3rem; border: 1px solid var(--surface-2); border-radius: 12px; background: var(--surface); }
 .forum-post-compose h3 { font-size: 1.13rem; }
 .forum-post-compose label { font-weight: 600; font-size: .9rem; }
-.forum-post-compose input, .forum-post-compose textarea { width: 100%; padding: .8rem; border: 1px solid #393d4e; border-radius: 8px; background: var(--bg); color: var(--text); }
+.forum-post-compose input, .forum-post-compose textarea { width: 100%; padding: .8rem; border: 1px solid var(--surface-2); border-radius: 8px; background: var(--bg); color: var(--text); }
 .forum-post-compose textarea { resize: vertical; }
 .forum-post-compose small { color: var(--muted); }
 .forum-post-compose-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem; }
@@ -3116,7 +3065,7 @@ main.container {
   padding: 1rem;
   border: 1px solid #454655;
   border-radius: var(--radius);
-  background: #20222d;
+  background: var(--surface);
   box-shadow: 0 16px 42px rgba(0,0,0,.48);
 }
 .header-search-popover label { display: block; margin-bottom: .5rem; font-size: .9rem; font-weight: 700; }
@@ -3175,4 +3124,38 @@ main.container {
   color: #ff5b65;
   border-color: #ff5b65;
   background: rgba(128, 128, 128, 0.16);
+}
+/* ===== Identidad SeriesHub · SVG y selectores ===== */
+:root {
+  --accent-hover: #9cdad4;
+  --accent-soft: rgba(123, 199, 192, .14);
+  --border-color: rgba(160, 187, 206, .18);
+}
+body { background: var(--bg); }
+.header { border-bottom: 1px solid var(--border-color); }
+.logo { display: inline-flex; align-items: center; padding: 0; flex-shrink: 0; }
+.site-isologo { display: block; width: clamp(150px, 18vw, 210px); height: auto; max-height: 52px; object-fit: contain; }
+.logo:hover .site-isologo { opacity: .88; }
+.profile-avatar, .profile-avatar-preview { border-radius: 16px; }
+.profile-avatar { background: var(--surface-2); }
+.avatar-editor-help { flex: 1; color: var(--muted); font-size: .9rem; }
+.avatar-style-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 390px; gap: .8rem; }
+.avatar-style-choice, .forum-icon-choice { display: grid; place-items: center; padding: .4rem; border: 2px solid transparent; border-radius: 14px; background: var(--surface-2); cursor: pointer; transition: border-color .18s ease, background .18s ease, transform .18s ease; }
+.avatar-style-choice:hover, .forum-icon-choice:hover { transform: translateY(-2px); border-color: var(--muted); }
+.avatar-style-choice.is-selected, .forum-icon-choice.is-selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+.avatar-style-choice img, .forum-icon-choice img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
+.avatar-color-picker { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; padding-block: .3rem; }
+.avatar-color-choice { width: 36px; height: 36px; padding: 0; flex: 0 0 auto; border: 3px solid var(--surface); outline: 2px solid transparent; border-radius: 50%; background: var(--avatar-color); cursor: pointer; transition: outline-color .18s ease, transform .18s ease; }
+.avatar-color-choice:hover { transform: scale(1.08); }
+.avatar-color-choice.is-selected { outline-color: var(--accent); }
+.forum-icon-fieldset { min-width: 0; padding: 0; border: 0; margin: .45rem 0 1rem; }
+.forum-icon-fieldset legend { font-weight: 600; margin-bottom: .7rem; }
+.forum-icon-picker { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .65rem; max-width: 480px; }
+.home-forum-icon, .profile-my-group-icon { padding: 0; overflow: hidden; border-radius: 10px; }
+.home-forum-icon img, .profile-my-group-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 520px) {
+  .forum-icon-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .site-isologo { width: 145px; }
+  .avatar-style-picker { gap: .4rem; }
+  .avatar-style-choice { padding: .22rem; }
 }

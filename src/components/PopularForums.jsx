@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { createGroup, getGroups } from '../services/groups'
 
 import { FEATURED_FORUMS } from '../services/featuredForums'
+import { DEFAULT_FORUM_ICON, forumIconForGroup, forumIconUrl } from '../services/visualAssets'
+import ForumIconPicker from './ForumIconPicker'
 
 export default function PopularForums() {
   const navigate = useNavigate()
@@ -15,6 +17,7 @@ export default function PopularForums() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [topic, setTopic] = useState('')
+  const [icon, setIcon] = useState(DEFAULT_FORUM_ICON)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -56,6 +59,7 @@ export default function PopularForums() {
         title,
         description,
         topic,
+        icon,
       })
 
       navigate(`/grupo/${id}`)
@@ -140,6 +144,8 @@ export default function PopularForums() {
             placeholder="¿De qué se va a hablar en este foro?"
           />
 
+          <ForumIconPicker value={icon} onChange={setIcon} />
+
           {formError && (
             <p className="message error" role="alert">
               {formError}
@@ -180,7 +186,7 @@ export default function PopularForums() {
                   className="home-forum-icon"
                   aria-hidden="true"
                 >
-                  {forum.icon}
+                  <img src={forumIconUrl(forumIconForGroup(forum))} alt="" />
                 </span>
 
                 <div className="home-forum-info">

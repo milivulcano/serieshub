@@ -1,9 +1,9 @@
 // Foros editoriales disponibles para todos. Sus publicaciones iniciales
 // son datos ficticios de muestra, no documentos ni cuentas de Firebase.
 export const FEATURED_FORUMS = [
-  { id: 'teorias-finales', icon: '✦', title: 'Teorías y finales', description: 'Debatí interpretaciones, pistas y finales inesperados.', topic: 'Debate', featured: true },
-  { id: 'viendo-ahora', icon: '▶', title: '¿Qué estamos viendo?', description: 'Compartí qué estás mirando y descubrí nuevas series.', topic: 'Recomendaciones', featured: true },
-  { id: 'sin-spoilers', icon: '◈', title: 'Recomendaciones sin spoilers', description: 'Encontrá tu próxima serie sin arruinarte ninguna sorpresa.', topic: 'Sin spoilers', featured: true },
+  { id: 'teorias-finales', icon: 'misterio', title: 'Teorías y finales', description: 'Debatí interpretaciones, pistas y finales inesperados.', topic: 'Debate', featured: true },
+  { id: 'viendo-ahora', icon: 'estrenos', title: '¿Qué estamos viendo?', description: 'Compartí qué estás mirando y descubrí nuevas series.', topic: 'Recomendaciones', featured: true },
+  { id: 'sin-spoilers', icon: 'recomendaciones', title: 'Recomendaciones sin spoilers', description: 'Encontrá tu próxima serie sin arruinarte ninguna sorpresa.', topic: 'Sin spoilers', featured: true },
 ]
 
 export function getFeaturedForum(id) {
