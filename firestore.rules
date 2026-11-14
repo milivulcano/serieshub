@@ -1,0 +1,198 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function validMessage(authorId) {
+      return request.resource.data.keys().hasAll(['userId', 'text', 'createdAt', 'updatedAt'])
+             && request.resource.data.keys().hasOnly(['userId', 'text', 'createdAt', 'updatedAt'])
+             && request.resource.data.userId == authorId
+             && request.resource.data.text is string
+             && request.resource.data.text.size() >= 1
+             && request.resource.data.text.size() <= 1000
+             && request.resource.data.createdAt is timestamp
+             && request.resource.data.updatedAt == request.time;
+    }
+
+    // Cada usuario accede únicamente a sus propias listas.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
+
+    // Reseñas compartidas de la comunidad. SIN CAMBIOS.
+    match /reviews/{reviewId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.seriesId is int
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 1000;
+
+      allow update: if request.auth != null
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == resource.data.userId
+                    && request.resource.data.seriesId == resource.data.seriesId
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 1000;
+
+      allow delete: if request.auth != null
+                    && resource.data.userId == request.auth.uid;
+    }
+
+    // Foros de la comunidad.
+    match /groups/{groupId} {
+      allow read: if request.auth != null;
+
+      // Nuevos iconos SVG, manteniendo compatibilidad con foros antiguos.
+      function validGroupIcon(icon) {
+        return icon is string && icon in [
+          'terror', 'misterio', 'romance', 'ciencia-ficcion',
+          'fantasia', 'drama', 'comedia', 'estrenos',
+          'debates', 'recomendaciones', 'eventos', 'calendario',
+          '✦'
+        ];
+      }
+
+      function validGroup() {
+        return request.resource.data.keys().hasAll([
+                 'title', 'description', 'topic', 'icon',
+                 'ownerId', 'createdAt', 'updatedAt'
+               ])
+               && request.resource.data.keys().hasOnly([
+                 'title', 'description', 'topic', 'icon',
+                 'ownerId', 'createdAt', 'updatedAt'
+               ])
+               && request.resource.data.title is string
+               && request.resource.data.title.size() >= 3
+               && request.resource.data.title.size() <= 60
+               && request.resource.data.description is string
+               && request.resource.data.description.size() >= 10
+               && request.resource.data.description.size() <= 300
+               && request.resource.data.topic is string
+               && request.resource.data.topic.size() >= 3
+               && request.resource.data.topic.size() <= 35
+               && validGroupIcon(request.resource.data.icon)
+               && request.resource.data.ownerId is string
+               && request.resource.data.createdAt is timestamp
+               && request.resource.data.updatedAt is timestamp;
+      }
+
+      allow create: if request.auth != null
+                    && validGroup()
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time;
+
+      allow update: if request.auth != null
+                    && resource.data.ownerId == request.auth.uid
+                    && validGroup()
+                    && request.resource.data.ownerId == resource.data.ownerId
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    // El propietario puede cambiar el icono por uno permitido.
+                    && request.resource.data.updatedAt == request.time;
+
+      allow delete: if request.auth != null
+                    && resource.data.ownerId == request.auth.uid;
+
+      match /members/{memberId} {
+        allow read: if request.auth != null;
+
+        allow create: if request.auth != null
+                      && request.auth.uid == memberId
+                      && existsAfter(/databases/$(database)/documents/groups/$(groupId))
+                      && request.resource.data.keys().hasOnly(['userId', 'joinedAt'])
+                      && request.resource.data.keys().hasAll(['userId', 'joinedAt'])
+                      && request.resource.data.userId == memberId
+                      && request.resource.data.joinedAt == request.time;
+
+        allow update: if false;
+
+        allow delete: if request.auth != null
+                      && (
+                        request.auth.uid == memberId
+                        || (
+                          exists(/databases/$(database)/documents/groups/$(groupId))
+                          && get(/databases/$(database)/documents/groups/$(groupId)).data.ownerId == request.auth.uid
+                        )
+                      );
+      }
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+
+        allow create: if request.auth != null
+                      && exists(/databases/$(database)/documents/groups/$(groupId))
+                      && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid))
+                      && validMessage(request.auth.uid);
+
+        allow update: if request.auth != null
+                      && resource.data.userId == request.auth.uid
+                      && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid))
+                      && validMessage(resource.data.userId)
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.updatedAt == request.time;
+
+        allow delete: if request.auth != null && (
+          (resource.data.userId == request.auth.uid
+            && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)))
+          || get(/databases/$(database)/documents/groups/$(groupId)).data.ownerId == request.auth.uid
+        );
+      }
+    }
+
+    // Tres foros editoriales: sus páginas existen en el frontend.
+    match /featuredGroups/{groupId} {
+      function allowedFeatured() {
+        return groupId in ['teorias-finales', 'viendo-ahora', 'sin-spoilers'];
+      }
+
+      allow read, write: if false;
+
+      match /members/{memberId} {
+        allow read: if request.auth != null && allowedFeatured();
+        allow create: if request.auth != null
+                      && allowedFeatured()
+                      && request.auth.uid == memberId
+                      && request.resource.data.keys().hasAll(['userId', 'joinedAt'])
+                      && request.resource.data.keys().hasOnly(['userId', 'joinedAt'])
+                      && request.resource.data.userId == memberId
+                      && request.resource.data.joinedAt == request.time;
+        allow update: if false;
+        allow delete: if request.auth != null
+                      && allowedFeatured()
+                      && request.auth.uid == memberId;
+      }
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null && allowedFeatured();
+        allow create: if request.auth != null
+                      && allowedFeatured()
+                      && exists(/databases/$(database)/documents/featuredGroups/$(groupId)/members/$(request.auth.uid))
+                      && validMessage(request.auth.uid);
+        allow update: if request.auth != null
+                      && allowedFeatured()
+                      && resource.data.userId == request.auth.uid
+                      && exists(/databases/$(database)/documents/featuredGroups/$(groupId)/members/$(request.auth.uid))
+                      && validMessage(resource.data.userId)
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.updatedAt == request.time;
+        allow delete: if request.auth != null
+                      && allowedFeatured()
+                      && resource.data.userId == request.auth.uid
+                      && exists(/databases/$(database)/documents/featuredGroups/$(groupId)/members/$(request.auth.uid));
+      }
+    }
+  }
+}
