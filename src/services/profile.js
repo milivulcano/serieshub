@@ -17,7 +17,7 @@ export async function getProfile() {
 
   if (!snapshot.exists()) {
     return {
-      username: 'Usuario de SeriesHub',
+      username: 'Usuario',
       description: '',
       avatarPath: '',
       avatarName: '',
@@ -30,7 +30,7 @@ export async function getProfile() {
   const profile = snapshot.data().profile ?? {}
 
   return {
-    username: profile.username ?? 'Usuario de SeriesHub',
+    username: profile.username ?? 'Usuario',
     description: profile.description ?? '',
     avatarPath: profile.avatarPath ?? '',
     avatarName: profile.avatarName ?? '',
@@ -48,8 +48,8 @@ export async function saveProfile(profileData) {
 
   const profile = {
     username: String(
-      profileData.username ?? 'Usuario de SeriesHub'
-    ).trim() || 'Usuario de SeriesHub',
+      profileData.username ?? 'Usuario'
+    ).trim() || 'Usuario',
 
     description: String(profileData.description ?? '').trim(),
 
