@@ -1,3 +1,5 @@
+import DatePicker from '../components/DatePicker'
+import { useConfirmDialog } from '../components/ConfirmDialog'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -191,6 +193,7 @@ function SimilarSeries({ items }) {
 }
 
 export default function SeriesDetails() {
+  const { confirm, dialog: confirmDialog } = useConfirmDialog()
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -457,9 +460,7 @@ export default function SeriesDetails() {
   }
 
   async function handleReviewDelete(reviewId) {
-    const confirmed = window.confirm(
-      '¿Seguro que querés eliminar tu reseña? Esta acción no se puede deshacer.'
-    )
+    const confirmed = await confirm({ title: 'Eliminar reseña', message: '¿Querés eliminar esta reseña? Esta acción no se puede deshacer.' })
 
     if (!confirmed) return
 
@@ -535,6 +536,7 @@ export default function SeriesDetails() {
 
   return (
     <>
+      {confirmDialog}
       {backButton}
 
       <section
@@ -878,17 +880,7 @@ export default function SeriesDetails() {
                   <div className="review-date-field">
                     <label htmlFor="reviewDate">Vista el</label>
 
-                    <input
-                      id="reviewDate"
-                      type="date"
-                      value={reviewDate}
-                      max={getTodayDate()}
-                      onChange={(event) =>
-                        setReviewDate(event.target.value)
-                      }
-                      required
-                      disabled={reviewLoading}
-                    />
+                    <DatePicker id="reviewDate" value={reviewDate} max={getTodayDate()} onChange={setReviewDate} required disabled={reviewLoading} />
                   </div>
 
                   {reviewError && (

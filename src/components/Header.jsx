@@ -8,11 +8,18 @@ export default function Header() {
   const searchAreaRef = useRef(null)
   const searchInputRef = useRef(null)
   const [quickReviewOpen, setQuickReviewOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [profileMenuSuppressed, setProfileMenuSuppressed] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  function closeProfileMenu() {
+    setProfileMenuOpen(false)
+    setProfileMenuSuppressed(true)
+  }
 
   function closeSearch() {
     setSearchOpen(false)
@@ -84,17 +91,22 @@ export default function Header() {
           <nav className="nav main-nav" aria-label="Navegación principal">
             <NavLink to="/" end onClick={closeSearch}>Descubrir</NavLink>
 
-            <div className="profile-menu">
-              <NavLink to="/perfil" className="profile-menu-link" onClick={closeSearch}>
+            <div className="profile-menu"
+              onMouseEnter={() => { if (!profileMenuSuppressed) setProfileMenuOpen(true) }}
+              onMouseLeave={() => { setProfileMenuOpen(false); setProfileMenuSuppressed(false) }}
+              onFocus={() => { if (!profileMenuSuppressed) setProfileMenuOpen(true) }}
+              onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setProfileMenuOpen(false) }}
+            >
+              <NavLink to="/perfil" className="profile-menu-link" onClick={() => { closeSearch(); closeProfileMenu() }} aria-haspopup="true" aria-expanded={profileMenuOpen}>
                 Mi perfil
                 <span className="dropdown-arrow" aria-hidden="true">▾</span>
               </NavLink>
-              <div className="profile-dropdown">
-                <Link to="/perfil?tab=series" onClick={closeSearch}>Series</Link>
-                <Link to="/perfil?tab=pendientes" onClick={closeSearch}>Pendientes</Link>
-                <Link to="/perfil?tab=favoritos" onClick={closeSearch}>Favoritos</Link>
-                <Link to="/perfil?tab=diario" onClick={closeSearch}>Diario</Link>
-                <Link to="/perfil?tab=viendo" onClick={closeSearch}>Viendo</Link>
+              <div className={`profile-dropdown${profileMenuOpen ? ' is-open' : ''}`}>
+                <Link to="/perfil?tab=series" onClick={() => { closeSearch(); closeProfileMenu() }}>Series</Link>
+                <Link to="/perfil?tab=pendientes" onClick={() => { closeSearch(); closeProfileMenu() }}>Pendientes</Link>
+                <Link to="/perfil?tab=favoritos" onClick={() => { closeSearch(); closeProfileMenu() }}>Favoritos</Link>
+                <Link to="/perfil?tab=diario" onClick={() => { closeSearch(); closeProfileMenu() }}>Diario</Link>
+                <Link to="/perfil?tab=viendo" onClick={() => { closeSearch(); closeProfileMenu() }}>Viendo</Link>
               </div>
             </div>
 

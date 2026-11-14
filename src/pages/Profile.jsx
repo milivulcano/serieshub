@@ -1,3 +1,5 @@
+import DatePicker from '../components/DatePicker'
+import { useConfirmDialog } from '../components/ConfirmDialog'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -36,6 +38,27 @@ const validTabs = tabs.map((tab) => tab.id)
 const DEFAULT_USERNAME = 'Usuario de SeriesHub'
 const MAX_TOP_FAVORITES = 4
 
+// El contexto conserva el orden de incorporación (primero el más antiguo).
+// Ordenamos únicamente para mostrar las listas en el perfil, sin modificar Firebase.
+function newestAddedFirst(series) {
+  return [...series].reverse()
+}
+
+function newestPremiereFirst(series) {
+  return series
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const dateA = typeof a.item.first_air_date === 'string' ? a.item.first_air_date : ''
+      const dateB = typeof b.item.first_air_date === 'string' ? b.item.first_air_date : ''
+
+      // Las fechas de TMDB usan el formato ISO YYYY-MM-DD.
+      // Las series sin fecha quedan al final.
+      const byPremiere = dateB.localeCompare(dateA)
+      return byPremiere || b.index - a.index
+    })
+    .map(({ item }) => item)
+}
+
 function getTodayDate() {
   const today = new Date()
   const year = today.getFullYear()
@@ -46,6 +69,7 @@ function getTodayDate() {
 }
 
 export default function Profile() {
+  const { confirm, dialog: confirmDialog } = useConfirmDialog()
   const {
     favorites,
     isFavorite,
@@ -533,9 +557,7 @@ export default function Profile() {
   }
 
   async function handleDeleteReview(reviewId) {
-    const confirmed = window.confirm(
-      '¿Seguro que querés eliminar tu reseña? Esta acción no se puede deshacer.'
-    )
+    const confirmed = await confirm({ title: 'Eliminar reseña', message: '¿Querés eliminar esta reseña? Esta acción no se puede deshacer.' })
 
     if (!confirmed) return
 
@@ -587,6 +609,7 @@ export default function Profile() {
 
   return (
     <section className="profile-page">
+      {confirmDialog}
       <div className="profile-header">
         <div className="profile-avatar">
           <img src={currentAvatar} alt={`Avatar de ${profile.username}`} />
@@ -1100,17 +1123,7 @@ export default function Profile() {
                             Vista el
                           </label>
 
-                          <input
-                            id="profile-review-date"
-                            type="date"
-                            value={reviewDate}
-                            max={getTodayDate()}
-                            onChange={(event) =>
-                              setReviewDate(event.target.value)
-                            }
-                            required
-                            disabled={reviewSaving}
-                          />
+                          <DatePicker id="profile-review-date" value={reviewDate} max={getTodayDate()} onChange={setReviewDate} required disabled={reviewSaving} />
                         </div>
 
                         {reviewSeriesError && (
@@ -1144,7 +1157,7 @@ export default function Profile() {
         {activeTab === 'series' && (
           <ProfileListSection
             title="Mis series"
-            series={watched}
+            series={newestPremiereFirst(watched)}
             ready={ready}
             emptyMessage="Todavía no marcaste series como vistas."
           />
@@ -1153,7 +1166,7 @@ export default function Profile() {
         {activeTab === 'pendientes' && (
           <ProfileListSection
             title="Pendientes"
-            series={watchlist}
+            series={newestAddedFirst(watchlist)}
             ready={ready}
             emptyMessage="Todavía no agregaste series a tu lista de pendientes."
           />
@@ -1162,7 +1175,7 @@ export default function Profile() {
         {activeTab === 'viendo' && (
           <ProfileListSection
             title="Viendo"
-            series={watching}
+            series={newestAddedFirst(watching)}
             ready={ready}
             emptyMessage="Todavía no agregaste series a esta lista."
           />
@@ -1171,7 +1184,7 @@ export default function Profile() {
         {activeTab === 'favoritos' && (
           <ProfileListSection
             title="Favoritos"
-            series={favorites}
+            series={newestPremiereFirst(favorites)}
             ready={ready}
             emptyMessage="Todavía no agregaste series a tus favoritos."
           />

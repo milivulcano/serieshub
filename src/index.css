@@ -3159,3 +3159,204 @@ body { background: var(--bg); }
   .avatar-style-picker { gap: .4rem; }
   .avatar-style-choice { padding: .22rem; }
 }
+
+/* ===== Revisión UX: menú, confirmaciones y formularios ===== */
+.profile-dropdown { display: none; }
+.profile-dropdown.is-open { display: flex; }
+/* Evita reabrir el menú por hover/focus después de seleccionar una opción. */
+.profile-menu:hover .profile-dropdown:not(.is-open),
+.profile-menu:focus-within .profile-dropdown:not(.is-open) { display: none; }
+
+/* Modal de eliminación: colores de la identidad actual de SeriesHub. */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(8, 12, 27, .78);
+  backdrop-filter: blur(5px);
+}
+.confirm-dialog {
+  width: min(100%, 460px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  padding: 1.7rem;
+  color: var(--text);
+  background: #202640;
+  border: 1px solid rgba(123, 199, 192, .32);
+  border-radius: 18px;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .50);
+}
+.confirm-dialog-heading {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+}
+.confirm-dialog-heading h2 {
+  flex: 1;
+  margin: 0;
+  color: #f6f7fb;
+  font-size: 1.3rem;
+  line-height: 1.25;
+}
+.confirm-dialog-symbol {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #ee7289;
+  background: rgba(238, 114, 137, .13);
+}
+.confirm-dialog-symbol svg { width: 23px; height: 23px; }
+.confirm-dialog .confirm-dialog-close,
+.ux-close-button {
+  border: 0;
+  border-radius: 8px;
+  padding: .3rem .55rem;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.confirm-dialog .confirm-dialog-close:hover,
+.ux-close-button:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.confirm-dialog > p {
+  margin: 1rem 0 1.6rem;
+  color: #b4bed3;
+  line-height: 1.65;
+}
+.confirm-dialog-actions,
+.ux-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+/* Secundario: únicamente contorno turquesa, sin relleno. */
+.confirm-dialog-actions .group-secondary-button {
+  padding: .7rem 1.35rem;
+  border: 1px solid #7bc7c0;
+  border-radius: 999px;
+  background: transparent;
+  color: #7bc7c0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.confirm-dialog-actions .group-secondary-button:hover:not(:disabled) {
+  border-color: #9cdad4;
+  background: rgba(123, 199, 192, .12);
+  color: #9cdad4;
+}
+/* Destructivo: rosa de la identidad (#EE7289). */
+.confirm-dialog-actions .confirm-dialog-delete {
+  padding: .7rem 1.35rem;
+  border: 1px solid #ee7289;
+  border-radius: 999px;
+  background: #ee7289;
+  color: #171b33;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+.confirm-dialog-actions .confirm-dialog-delete:hover:not(:disabled) {
+  border-color: #f391a2;
+  background: #f391a2;
+}
+.confirm-dialog button:focus-visible {
+  outline: 2px solid #7bc7c0;
+  outline-offset: 3px;
+}
+.confirm-dialog button:disabled { opacity: .55; cursor: not-allowed; }
+.group-secondary-button { background: transparent; border-color: var(--muted); }
+.group-secondary-button:hover:not(:disabled) { background: var(--surface-2); }
+.ux-form-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .35rem; }
+.ux-form-actions { margin-top: .8rem; }
+.group-create-form { margin-inline: auto; width: 100%; }
+.group-form > .ux-form-actions .group-primary-button { margin: 0; align-self: auto; }
+.forum-post-compose-footer > small { margin-right: auto; }
+.forum-post-compose-footer .ux-form-actions { margin: 0; }
+.group-details-actions { justify-content: flex-end; }
+.forum-header-main { align-items: center; }
+.forum-header-main > .home-forum-icon { flex: 0 0 76px; width: 76px; height: 76px; border-radius: 14px; }
+.forum-header-main .home-forum-topic { margin-top: 0; }
+.review-favorite-button, .review-favorite-button.on,
+.profile-recent-heart, .review-details-heart { color: #ee7289; }
+.review-favorite-button.on { border-color: #ee7289; background: rgba(238,114,137,.11); }
+@media (max-width: 620px) {
+  .confirm-dialog { padding: 1.2rem; }
+  .forum-header-main > .home-forum-icon { flex-basis: 60px; width: 60px; height: 60px; }
+  .ux-form-actions { justify-content: stretch; }
+  .ux-form-actions > button { flex: 1; }
+}
+
+
+/* ===== Calendario de reseñas · identidad SeriesHub ===== */
+.sh-date-picker { min-width: 0; max-width: 100%; }
+.sh-date-trigger {
+  display: inline-flex; align-items: center; gap: .65rem;
+  min-width: 222px; max-width: 100%; min-height: 43px;
+  padding: .6rem .8rem; border: 1px solid #415070;
+  border-radius: 10px; background: var(--bg); color: var(--text);
+  font: inherit; text-align: left; cursor: pointer;
+  transition: border-color .18s ease, background .18s ease;
+}
+.sh-date-trigger svg { width: 19px; height: 19px; flex: 0 0 auto; color: var(--accent); }
+.sh-date-trigger span { flex: 1; white-space: nowrap; }
+.sh-date-trigger .sh-date-chevron { width: 17px; height: 17px; color: var(--muted); }
+.sh-date-trigger:hover, .sh-date-trigger.is-open { border-color: var(--accent); background: #242d4a; }
+.sh-date-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.sh-date-trigger:disabled { opacity: .55; cursor: not-allowed; }
+.sh-date-popover {
+  position: fixed; z-index: 5000; width: min(344px, calc(100vw - 24px));
+  padding: 1rem; max-height: calc(100vh - 24px); overflow-y: auto; background: var(--surface); color: var(--text);
+  border: 1px solid #425072; border-radius: 16px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.52);
+}
+.sh-date-header { display: flex; gap: .35rem; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+.sh-date-selectors { display: flex; gap: .3rem; min-width: 0; }
+.sh-date-selectors select {
+  width: auto; max-width: 136px; padding: .45rem .25rem;
+  color: var(--text); background: var(--bg); border: 1px solid #425072;
+  border-radius: 8px; font: inherit; font-size: .88rem; cursor: pointer;
+}
+.sh-date-selectors select:last-child { max-width: 86px; }
+.sh-date-arrow {
+  display: grid; place-items: center; width: 32px; height: 32px;
+  flex: 0 0 auto; border: 0; border-radius: 8px;
+  background: transparent; color: var(--accent); font: inherit; font-size: 1.6rem;
+  line-height: 1; cursor: pointer;
+}
+.sh-date-arrow:hover:not(:disabled) { background: var(--surface-2); }
+.sh-date-arrow:disabled { color: #65718c; opacity: .5; cursor: not-allowed; }
+.sh-date-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .2rem; }
+.sh-date-weekday { display: grid; place-items: center; height: 30px; color: var(--muted); font-size: .8rem; font-weight: 650; }
+.sh-date-day {
+  display: grid; place-items: center; width: 100%; aspect-ratio: 1;
+  padding: 0; border: 1px solid transparent; border-radius: 8px;
+  color: var(--text); background: transparent; font: inherit; font-size: .87rem;
+  cursor: pointer; transition: background .15s ease, border-color .15s ease;
+}
+.sh-date-day:hover:not(:disabled) { background: var(--surface-2); border-color: #465576; }
+.sh-date-day.is-today:not(.is-selected) { border-color: var(--accent); color: var(--accent); }
+.sh-date-day.is-selected, .sh-date-day.is-selected:hover { background: var(--accent); color: var(--bg); font-weight: 750; }
+.sh-date-day:disabled { opacity: .26; cursor: not-allowed; }
+.sh-date-popover button:focus-visible, .sh-date-popover select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sh-date-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .8rem; padding-top: .7rem; border-top: 1px solid var(--surface-2); }
+.sh-date-footer button { padding: .3rem .55rem; border: 0; border-radius: 7px; background: transparent; color: var(--accent); font: inherit; font-size: .85rem; cursor: pointer; }
+.sh-date-footer button:hover:not(:disabled) { background: var(--surface-2); }
+.sh-date-footer button:disabled { opacity: .35; cursor: not-allowed; }
+@media(max-width: 400px) { .sh-date-popover { padding: .7rem; } .sh-date-trigger { min-width: 0; } }
+@media(prefers-reduced-motion: reduce) { .sh-date-trigger, .sh-date-day { transition: none; } }
+
+/* Detalle de reseña: acciones alineadas con el borde derecho. */
+.review-details-actions { justify-content: flex-end; align-items: center; }

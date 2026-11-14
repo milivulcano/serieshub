@@ -1,3 +1,4 @@
+import { useConfirmDialog } from './ConfirmDialog'
 import { useEffect, useMemo, useState } from 'react'
 import { getSamplePosts } from '../services/featuredForums'
 import {
@@ -28,6 +29,7 @@ function formatDate(value) {
 }
 
 export default function GroupChat({ group, userId, isMember }) {
+  const { confirm, dialog: confirmDialog } = useConfirmDialog()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -125,7 +127,7 @@ export default function GroupChat({ group, userId, isMember }) {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('¿Eliminar esta publicación?')) return
+    if (!await confirm({ title: 'Eliminar publicación', message: '¿Querés eliminar esta publicación? Esta acción no se puede deshacer.' })) return
     setBusyId(id)
     setActionError('')
     try {
@@ -144,21 +146,25 @@ export default function GroupChat({ group, userId, isMember }) {
 
   return (
     <section className="forum-posts" aria-labelledby="forum-posts-title">
+      {confirmDialog}
       <div className="forum-posts-heading">
         <div>
           <h2 id="forum-posts-title">Publicaciones</h2>
           <span>{loading ? 'Cargando…' : `${posts.length} publicaciones`}</span>
         </div>
         {isMember && (
-          <button type="button" className="group-primary-button" onClick={() => { setShowComposer((v) => !v); setActionError('') }}>
-            {showComposer ? 'Cancelar' : '+ Nueva publicación'}
+          <button type="button" className="group-primary-button" onClick={() => { setShowComposer(true); setActionError('') }}>
+            + Nueva publicación
           </button>
         )}
       </div>
 
       {isMember && showComposer && (
         <form className="forum-post-compose" onSubmit={handlePublish}>
-          <h3>Crear publicación</h3>
+          <div className="ux-form-heading">
+            <h3>Crear publicación</h3>
+            <button type="button" className="ux-close-button" aria-label="Cerrar formulario" disabled={sending} onClick={() => { setShowComposer(false); setActionError('') }}>×</button>
+          </div>
           <label htmlFor="forum-new-title">Título</label>
           <input id="forum-new-title" value={title} maxLength={100} required disabled={sending}
             onChange={(e) => setTitle(e.target.value)} placeholder="¿De qué querés hablar?" />
@@ -167,9 +173,12 @@ export default function GroupChat({ group, userId, isMember }) {
             onChange={(e) => setBody(e.target.value)} placeholder="Contá tu opinión, pregunta o recomendación…" />
           <div className="forum-post-compose-footer">
             <small>{textLength}/1000 caracteres</small>
-            <button className="group-primary-button" type="submit" disabled={sending || !title.trim() || !body.trim() || textLength > MAX_LENGTH}>
-              {sending ? 'Publicando…' : 'Publicar'}
-            </button>
+            <div className="ux-form-actions">
+              <button className="group-secondary-button" type="button" disabled={sending} onClick={() => { setShowComposer(false); setActionError('') }}>Cancelar</button>
+              <button className="group-primary-button" type="submit" disabled={sending || !title.trim() || !body.trim() || textLength > MAX_LENGTH}>
+                {sending ? 'Publicando…' : 'Publicar'}
+              </button>
+            </div>
           </div>
         </form>
       )}
@@ -193,8 +202,8 @@ export default function GroupChat({ group, userId, isMember }) {
                     <textarea id={`forum-edit-body-${post.id}`} rows={4} value={editBody} required maxLength={998} disabled={busyId === post.id} onChange={(e) => setEditBody(e.target.value)} />
                     <small>{editLength}/1000 caracteres</small>
                     <div className="group-details-actions">
-                      <button type="submit" className="group-primary-button" disabled={busyId === post.id || editLength > MAX_LENGTH}>Guardar</button>
                       <button type="button" className="group-secondary-button" disabled={busyId === post.id} onClick={() => setEditingId(null)}>Cancelar</button>
+                      <button type="submit" className="group-primary-button" disabled={busyId === post.id || editLength > MAX_LENGTH}>Guardar</button>
                     </div>
                   </form>
                 ) : (

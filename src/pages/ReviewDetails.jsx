@@ -1,3 +1,5 @@
+import DatePicker from '../components/DatePicker'
+import { useConfirmDialog } from '../components/ConfirmDialog'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getSeriesDetails, posterUrl } from '../services/tmdb'
@@ -17,6 +19,7 @@ function displayDate(value) {
 }
 
 export default function ReviewDetails() {
+  const { confirm, dialog: confirmDialog } = useConfirmDialog()
   const { reviewId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -142,7 +145,7 @@ export default function ReviewDetails() {
 
   async function handleDelete() {
     if (!review || deleting || review.userId !== userId) return
-    if (!window.confirm('¿Seguro que querés eliminar tu reseña? Esta acción no se puede deshacer.')) return
+    if (!await confirm({ title: 'Eliminar reseña', message: '¿Querés eliminar esta reseña? Esta acción no se puede deshacer.' })) return
     setDeleting(true)
     setMessage('')
     try {
@@ -166,6 +169,7 @@ export default function ReviewDetails() {
 
   return (
     <div className="review-details-page">
+      {confirmDialog}
       {backButton}
       {message && <p className={message.startsWith('No se') ? 'message error' : 'profile-success'} role="status">{message}</p>}
 
@@ -258,7 +262,7 @@ export default function ReviewDetails() {
                   <p className="review-counter">{text.length}/1000 caracteres</p>
                   <div className="review-date-field">
                     <label htmlFor="detail-review-date">Vista el</label>
-                    <input id="detail-review-date" type="date" value={watchedAt} max={today()} onChange={(event) => setWatchedAt(event.target.value)} required disabled={saving} />
+                    <DatePicker id="detail-review-date" value={watchedAt} max={today()} onChange={setWatchedAt} required disabled={saving} />
                   </div>
                   {editorError && <p className="message error" role="alert">{editorError}</p>}
                   <button className="detail-btn on" type="submit" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>

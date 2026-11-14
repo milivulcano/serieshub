@@ -1,3 +1,4 @@
+import DatePicker from '../components/DatePicker'
 import { useEffect, useState } from 'react'
 
 import {
@@ -513,17 +514,7 @@ export default function QuickReview({ open, onClose }) {
                       Vista el
                     </label>
 
-                    <input
-                      id="quick-review-date"
-                      type="date"
-                      value={reviewDate}
-                      max={getTodayDate()}
-                      onChange={(event) =>
-                        setReviewDate(event.target.value)
-                      }
-                      required
-                      disabled={reviewSaving}
-                    />
+                    <DatePicker id="quick-review-date" value={reviewDate} max={getTodayDate()} onChange={setReviewDate} required disabled={reviewSaving} />
                   </div>
 
                   {reviewError && (

@@ -1,3 +1,4 @@
+import { useConfirmDialog } from '../components/ConfirmDialog'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import GroupChat from '../components/GroupChat'
@@ -14,6 +15,7 @@ import {
 } from '../services/groups'
 
 export default function GroupDetails() {
+  const { confirm, dialog: confirmDialog } = useConfirmDialog()
   const { groupId } = useParams()
   const navigate = useNavigate()
   const [group, setGroup] = useState(null)
@@ -113,7 +115,7 @@ export default function GroupDetails() {
   }
 
   async function handleDelete() {
-    if (!window.confirm('¿Eliminar este foro y sus publicaciones? Esta acción no se puede deshacer.')) return
+    if (!await confirm({ title: 'Eliminar foro', message: '¿Querés eliminar este foro y sus publicaciones? Esta acción no se puede deshacer.' })) return
     setSaving(true)
     setFormError('')
     try {
@@ -128,6 +130,7 @@ export default function GroupDetails() {
 
   return (
     <section className="group-details-page">
+      {confirmDialog}
       <Link className="back-btn group-back-link" to="/#foros-populares">← Volver a foros</Link>
       {loading && <p className="message">Cargando foro…</p>}
       {error && <p className="message error" role="alert">{error}</p>}
@@ -172,8 +175,8 @@ export default function GroupDetails() {
               <ForumIconPicker value={icon} onChange={setIcon} />
               {formError && <p className="message error" role="alert">{formError}</p>}
               <div className="group-details-actions">
-                <button type="submit" className="group-primary-button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
                 <button type="button" className="group-secondary-button" disabled={saving} onClick={() => setEditing(false)}>Cancelar</button>
+                <button type="submit" className="group-primary-button" disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
               </div>
             </form>
           )}

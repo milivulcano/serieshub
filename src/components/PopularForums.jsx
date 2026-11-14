@@ -95,18 +95,21 @@ export default function PopularForums() {
           className="group-primary-button"
           type="button"
           onClick={() => {
-            setShowForm((current) => !current)
+            if (!showForm) setShowForm(true)
             setFormError('')
           }}
           aria-expanded={showForm}
         >
-          {showForm ? 'Cancelar' : '+ Crear foro'}
+          + Crear foro
         </button>
       </div>
 
       {showForm && (
-        <form className="group-form" onSubmit={handleCreate}>
-          <h3>Crear un foro</h3>
+        <form className="group-form group-create-form" onSubmit={handleCreate}>
+          <div className="ux-form-heading">
+            <h3>Crear un foro</h3>
+            <button type="button" className="ux-close-button" aria-label="Cerrar formulario" disabled={saving} onClick={() => { setShowForm(false); setFormError('') }}>×</button>
+          </div>
 
           <label htmlFor="new-group-title">Nombre</label>
           <input
@@ -152,13 +155,10 @@ export default function PopularForums() {
             </p>
           )}
 
-          <button
-            className="group-primary-button"
-            type="submit"
-            disabled={saving}
-          >
-            {saving ? 'Creando…' : 'Crear foro'}
-          </button>
+          <div className="ux-form-actions">
+            <button className="group-secondary-button" type="button" disabled={saving} onClick={() => { setShowForm(false); setFormError('') }}>Cancelar</button>
+            <button className="group-primary-button" type="submit" disabled={saving}>{saving ? 'Creando…' : 'Crear foro'}</button>
+          </div>
         </form>
       )}
 
