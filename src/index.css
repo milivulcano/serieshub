@@ -2706,23 +2706,28 @@ main.container {
 .profile-stats-card { height: 100%; display: flex; flex-direction: column; }
 .profile-stats-card .profile-stats-list { flex: 1; justify-content: space-around; }
 .profile-stats-row { padding-block: .65rem; }
-/* Posicionado en la segunda celda para que la lista no aumente la altura de Actividad reciente. */
+/* "Mis foros" participa del flujo de la grilla: es visible aunque no haya reseñas.
+   La altura de Actividad reciente ya no determina qué parte del listado se ve. */
+.profile-forums-area {
+  display: flex;
+}
 .profile-forums-area .profile-my-groups {
-  position: absolute;
-  inset: 0;
+  position: static;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 170px;
   margin: 0;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
-/* Los foros comienzan arriba; el espacio sobrante queda debajo de la lista. */
+/* Si la persona sigue muchos foros, se desplaza solo la lista, sin ocultar el título. */
 .profile-forums-area .profile-my-groups-list {
   min-height: 0;
-  flex: 1;
+  flex: 0 1 auto;
   display: grid;
   align-content: start;
   grid-auto-rows: max-content;
+  max-height: 360px;
   overflow-y: auto;
   scrollbar-width: thin;
 }
