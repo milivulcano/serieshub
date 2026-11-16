@@ -1,31 +1,33 @@
 # SeriesHub
 
-**SeriesHub** es una aplicación web para descubrir series, organizarlas en listas personales y participar en una comunidad mediante reseñas y foros. Está orientada a personas que quieren seguir las series que ven, guardar las que les interesan y compartir opiniones.
+**SeriesHub** es una aplicación web para descubrir series, organizarlas en listas personales, registrar lo que se vio y participar en una comunidad mediante reseñas y foros. Está orientada a personas que quieren seguir sus series, guardar las que les interesan y compartir opiniones.
 
 ## Funcionalidades principales
 
-- Explorar series en tendencia y buscar títulos.
-- Consultar información de series a través de la API de TMDB.
-- Agregar o quitar series de **Favoritos**, **Pendientes**, **Viendo** y **Ya vistas**.
-- Crear, consultar, editar y eliminar reseñas con puntuaciones.
-- Participar en foros de la comunidad y sus conversaciones.
-- Personalizar el perfil y consultar la actividad relacionada con series.
-- Conservar datos en **Cloud Firestore** para que sigan disponibles al recargar la página.
+- Explorar series en tendencia y buscar títulos desde la página principal y el menú.
+- Consultar información de series mediante **TMDB**: sinopsis, plataformas disponibles, tráiler, reparto, equipo y series similares.
+- Organizar series en **Favoritos**, **Pendientes**, **Viendo** y **Series vistas**.
+- Registrar una serie con puntuación y fecha de visualización, con o sin comentario; editar o eliminar registros propios.
+- Consultar el **Diario**, ordenado por fecha de visualización y separado por años, y la **Actividad reciente**, ordenada por publicación.
+- Crear foros, seguirlos y participar mediante publicaciones; editar y eliminar contenido propio según los permisos establecidos.
+- Personalizar el perfil con avatares SVG y colores; elegir iconos para los foros.
+- Guardar listas, perfiles, registros y contenido de la comunidad en **Cloud Firestore**.
 
 ## Tecnologías
 
-- **React** para la interfaz y sus componentes.
+- **React** para la interfaz y los componentes.
 - **Vite** para el entorno de desarrollo y la compilación.
 - **React Router** para la navegación.
-- **Firebase Authentication** (inicio de sesión anónimo).
-- **Cloud Firestore** para guardar y consultar información.
-- **TMDB API** para obtener datos sobre series.
+- **Firebase Authentication** con inicio de sesión anónimo.
+- **Cloud Firestore** para persistencia y operaciones sobre los datos.
+- **TMDB API** para los datos de series.
+- **Vercel** para publicar la aplicación.
 
 ## Requisitos previos
 
-- Node.js y npm instalados. Se recomienda usar una versión reciente y compatible con las dependencias del proyecto.
-- Un proyecto de Firebase con **Cloud Firestore** habilitado y **Authentication > Anonymous** activado.
-- Una clave **API v3** de TMDB.
+- Node.js y npm instalados, en versiones compatibles con las dependencias del proyecto.
+- Un proyecto Firebase con **Cloud Firestore** y **Authentication > Anonymous** habilitado.
+- Una clave de la **API v3 de TMDB**.
 
 ## Instalación y ejecución local
 
@@ -36,13 +38,13 @@
    cd serieshub
    ```
 
-2. Instalar dependencias:
+2. Instalar las dependencias:
 
    ```bash
    npm install
    ```
 
-3. Crear un archivo `.env` en la carpeta raíz usando `.env.example` como referencia. Completar estas variables con los datos correspondientes:
+3. Crear un archivo `.env` en la raíz del proyecto tomando `.env.example` como referencia y completar los valores:
 
    ```dotenv
    VITE_FIREBASE_API_KEY=
@@ -54,19 +56,19 @@
    VITE_TMDB_API_KEY=
    ```
 
-   Los datos de Firebase se obtienen en la configuración de la aplicación web de Firebase. La clave de TMDB se obtiene desde una cuenta de TMDB con acceso a su API.
+   Los datos de Firebase se obtienen desde la configuración de su aplicación web en Firebase Console. La clave de TMDB se obtiene desde la configuración de API de una cuenta de TMDB.
 
-4. En Firebase Console, habilitar **Authentication > Sign-in method > Anonymous**, crear la base de **Cloud Firestore** y publicar reglas de seguridad adecuadas. El archivo [`firestore.rules`](./firestore.rules) documenta las reglas utilizadas por este proyecto. **Agregar el archivo a GitHub no publica las reglas automáticamente en Firebase.**
+4. En Firebase Console, habilitar **Authentication > Sign-in method > Anonymous**, configurar **Cloud Firestore** y publicar las reglas correspondientes. El archivo [`firestore.rules`](./firestore.rules) contiene una copia de las reglas utilizadas por el proyecto. **Subir ese archivo a GitHub no publica las reglas automáticamente en Firebase.**
 
-5. Iniciar la aplicación:
+5. Ejecutar:
 
    ```bash
    npm run dev
    ```
 
-6. Abrir en el navegador la dirección local indicada por Vite (habitualmente `http://localhost:5173`).
+6. Abrir la dirección indicada por Vite en la terminal, normalmente `http://localhost:5173`.
 
-> Importante: las variables `VITE_` se incluyen en el código enviado al navegador. No guardar contraseñas ni credenciales privadas en ellas. El archivo `.env` se excluye del repositorio mediante `.gitignore`.
+> **Seguridad:** las variables con prefijo `VITE_` se incorporan al código que recibe el navegador. No incluir contraseñas ni secretos de servidor. La seguridad de los datos en Firestore depende de las reglas publicadas y la autenticación. El archivo `.env` real no debe subirse al repositorio.
 
 ## Compilación para producción
 
@@ -74,7 +76,7 @@
 npm run build
 ```
 
-La versión compilada se genera en `dist/`. Para probarla localmente:
+Los archivos compilados se generan en `dist/`. Para revisar localmente la compilación:
 
 ```bash
 npm run preview
@@ -82,25 +84,33 @@ npm run preview
 
 ## Persistencia y cuentas anónimas
 
-Los datos de listas, reseñas, foros y perfiles se administran con Firestore. La aplicación usa autenticación anónima para asociar datos a un usuario. Si se abre desde otro navegador o dispositivo, puede generarse una identidad anónima distinta y no recuperarse automáticamente las mismas listas personales.
+Las listas, registros, perfiles y foros se almacenan en Firestore. Firebase Authentication asigna una identidad anónima a cada usuario. Si se abre SeriesHub desde otro navegador o dispositivo, puede crearse otra identidad y no recuperarse automáticamente los datos personales de la sesión anterior.
+
+Los datos de series y las recomendaciones visualizadas provienen de TMDB, por lo que su disponibilidad depende de esa API.
 
 ## Estructura principal
 
 ```text
+public/
+└── assets/           # Isologo, favicon, avatares e iconos de foros
 src/
 ├── components/       # Componentes reutilizables
 ├── context/          # Estado y listas de series
 ├── pages/            # Vistas de la aplicación
-├── services/         # Consultas a TMDB y a Firestore
+├── services/         # Consultas a TMDB, Firestore y recursos visuales
 ├── firebase.js       # Inicialización de Firebase
 ├── App.jsx           # Rutas principales
 └── main.jsx          # Punto de entrada
+firestore.rules        # Copia de las reglas de Firestore
+.env.example           # Nombres de las variables de entorno
 ```
 
 ## Publicación
 
-La aplicación está prevista para desplegarse en **Vercel** conectando este repositorio de GitHub. En Vercel se configuran las mismas variables de entorno del `.env` para **Production**, se usa `npm run build` como comando de compilación y `dist` como directorio de salida. La URL pública se incorporará a la entrega cuando se complete el despliegue.
+SeriesHub está desplegada en **Vercel** a partir del repositorio de GitHub. La configuración de producción utiliza `npm run build` y el directorio de salida `dist/`. Las variables de entorno se configuran en el panel de Vercel para el entorno de producción.
+
+**URL de la aplicación:** https://serieshub-plum.vercel.app/
 
 ## Material de entrega
 
-Trabajo Práctico 2 — Desarrollo Frontend II (2026). El repositorio incluye el código fuente y la copia de las reglas de Firestore. El informe, la bitácora de iteraciones y la demostración se presentan como parte de la entrega académica.
+**Trabajo Práctico 2 — Desarrollo Frontend II (2026).** Este repositorio contiene el código fuente, las instrucciones de instalación, la configuración de ejemplo y una copia de las reglas de Firestore.
