@@ -3365,3 +3365,22 @@ body { background: var(--bg); }
 
 /* Detalle de reseña: acciones alineadas con el borde derecho. */
 .review-details-actions { justify-content: flex-end; align-items: center; }
+
+/* ===== Diario: encabezados de año ===== */
+.profile-activity-entry { min-width: 0; }
+.diary-year-heading {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 1.5rem 0.4rem 0.45rem;
+  color: #7bc7c0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.025em;
+}
+.diary-year-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(123, 199, 192, 0.28);
+}
+.profile-activity-entry:first-child .diary-year-heading { padding-top: 0.65rem; }

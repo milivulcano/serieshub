@@ -20,7 +20,7 @@ service cloud.firestore {
                          && request.auth.uid == userId;
     }
 
-    // Reseñas compartidas de la comunidad. SIN CAMBIOS.
+    // Registros compartidos de la comunidad: el comentario puede estar vacío.
     match /reviews/{reviewId} {
       allow read: if request.auth != null;
 
@@ -31,7 +31,6 @@ service cloud.firestore {
                     && request.resource.data.rating >= 1
                     && request.resource.data.rating <= 5
                     && request.resource.data.text is string
-                    && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 1000;
 
       allow update: if request.auth != null
@@ -42,7 +41,6 @@ service cloud.firestore {
                     && request.resource.data.rating >= 1
                     && request.resource.data.rating <= 5
                     && request.resource.data.text is string
-                    && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 1000;
 
       allow delete: if request.auth != null

@@ -113,6 +113,7 @@ export default function Profile() {
   const [draggedIndex, setDraggedIndex] = useState(null)
 
   const [reviews, setReviews] = useState([])
+  const [favoritePremiereDates, setFavoritePremiereDates] = useState({})
   const [reviewsReady, setReviewsReady] = useState(false)
   const [reviewsError, setReviewsError] = useState('')
 
@@ -243,6 +244,33 @@ export default function Profile() {
       active = false
     }
   }, [])
+
+  // Algunas series añadidas hace tiempo no tienen first_air_date guardada.
+  // Recuperamos la fecha de TMDB solo para los favoritos que la necesiten.
+  useEffect(() => {
+    if (activeTab !== 'favoritos') return
+    const missing = favorites.filter((item) =>
+      !item.first_air_date && !Object.prototype.hasOwnProperty.call(favoritePremiereDates, item.id)
+    )
+    if (!missing.length) return
+
+    const controller = new AbortController()
+    Promise.all(missing.map(async (item) => {
+      try {
+        const details = await getSeriesDetails(item.id, controller.signal)
+        return [item.id, details?.first_air_date || '']
+      } catch (error) {
+        if (error.name !== 'AbortError') console.error('No se pudo consultar la fecha de estreno:', error)
+        return [item.id, '']
+      }
+    })).then((entries) => {
+      if (!controller.signal.aborted) {
+        setFavoritePremiereDates((current) => ({ ...current, ...Object.fromEntries(entries) }))
+      }
+    })
+
+    return () => controller.abort()
+  }, [activeTab, favorites, favoritePremiereDates])
 
   // Traemos los detalles desde TMDB para mostrar el póster y el año.
   // También necesitamos los datos completos para agregar la serie a Favoritos.
@@ -484,11 +512,6 @@ export default function Profile() {
   async function handleUpdateReview(event) {
     event.preventDefault()
     setReviewError('')
-
-    if (!reviewText.trim()) {
-      setReviewError('Escribí tu reseña antes de guardar.')
-      return
-    }
 
     if (reviewText.trim().length > 1000) {
       setReviewError('La reseña no puede superar los 1000 caracteres.')
@@ -1110,7 +1133,6 @@ export default function Profile() {
                           placeholder={`¿Qué te pareció ${editingReview.seriesName}?`}
                           maxLength={1000}
                           rows={5}
-                          required
                           disabled={reviewSaving}
                         />
 
@@ -1184,7 +1206,10 @@ export default function Profile() {
         {activeTab === 'favoritos' && (
           <ProfileListSection
             title="Favoritos"
-            series={newestPremiereFirst(favorites)}
+            series={newestPremiereFirst(favorites.map((item) => ({
+              ...item,
+              first_air_date: item.first_air_date || favoritePremiereDates[item.id] || '',
+            })))}
             ready={ready}
             emptyMessage="Todavía no agregaste series a tus favoritos."
           />

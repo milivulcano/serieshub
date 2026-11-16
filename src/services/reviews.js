@@ -62,7 +62,7 @@ function normalizeReview({
   rating,
   text,
 }) {
-  const normalizedText = text.trim()
+  const normalizedText = String(text ?? '').trim()
   const normalizedRating = Number(rating)
   const normalizedSeriesName = String(
     seriesName ?? ''
@@ -78,13 +78,8 @@ function normalizeReview({
     )
   }
 
-  if (
-    !normalizedText ||
-    normalizedText.length > 1000
-  ) {
-    throw new Error(
-      'La reseña debe tener entre 1 y 1000 caracteres.'
-    )
+  if (normalizedText.length > 1000) {
+    throw new Error('La reseña no puede superar los 1000 caracteres.')
   }
 
   if (!normalizedSeriesName) {

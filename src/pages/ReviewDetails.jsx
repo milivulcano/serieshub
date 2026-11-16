@@ -99,8 +99,8 @@ export default function ReviewDetails() {
     event.preventDefault()
     if (!review || saving) return
     setEditorError('')
-    if (!text.trim() || text.trim().length > 1000) {
-      setEditorError('La reseña debe tener entre 1 y 1000 caracteres.')
+    if (text.trim().length > 1000) {
+      setEditorError('La reseña no puede superar los 1000 caracteres.')
       return
     }
     if (rating < 1 || rating > 5) {
@@ -195,7 +195,7 @@ export default function ReviewDetails() {
               <span className="review-rating" aria-label={`${review.rating} de 5 estrellas`}>{'★'.repeat(review.rating)}</span>
               {currentFavorite && <span className="review-details-heart" aria-label="En favoritos" title="En favoritos">♥</span>}
             </div>
-            <p className="review-details-body">{review.text}</p>
+            {review.text?.trim() && <p className="review-details-body">{review.text}</p>}
             {isOwner && (
               <div className="review-details-actions">
                 <button type="button" className="review-details-edit" onClick={openEditor}>✎ Editar</button>
@@ -258,7 +258,7 @@ export default function ReviewDetails() {
                     </button>
                   </div>
                   <label htmlFor="detail-review-text">Tu reseña</label>
-                  <textarea id="detail-review-text" value={text} onChange={(event) => setText(event.target.value)} placeholder={`¿Qué te pareció ${review.seriesName}?`} rows={5} maxLength={1000} required disabled={saving} />
+                  <textarea id="detail-review-text" value={text} onChange={(event) => setText(event.target.value)} placeholder={`¿Qué te pareció ${review.seriesName}?`} rows={5} maxLength={1000} disabled={saving} />
                   <p className="review-counter">{text.length}/1000 caracteres</p>
                   <div className="review-date-field">
                     <label htmlFor="detail-review-date">Vista el</label>

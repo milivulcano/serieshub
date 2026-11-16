@@ -175,7 +175,7 @@ export default function Header() {
                 setQuickReviewOpen(true)
               }}
             >
-              + Reseñar
+              + Registrar
             </button>
           </nav>
         </div>

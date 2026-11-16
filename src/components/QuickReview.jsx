@@ -170,11 +170,6 @@ export default function QuickReview({ open, onClose }) {
 
     setReviewError('')
 
-    if (!reviewText.trim()) {
-      setReviewError('Escribí tu reseña antes de publicarla.')
-      return
-    }
-
     if (reviewText.trim().length > 1000) {
       setReviewError(
         'La reseña no puede superar los 1000 caracteres.'
@@ -224,19 +219,19 @@ export default function QuickReview({ open, onClose }) {
         toggleFavorite(series)
       }
 
-      // Reseñar también marca la serie como vista.
+      // Registrar también marca la serie como vista.
       if (!isWatched(series.id)) {
         toggleWatched(series)
       }
 
       setSuccessMessage(
-        `¡Tu reseña de ${series.name} se publicó correctamente!`
+        `¡Tu registro de ${series.name} se publicó correctamente!`
       )
     } catch (error) {
       console.error('Error al publicar la reseña:', error)
 
       setReviewError(
-        'No pudimos publicar la reseña. Revisá tu conexión e intentá nuevamente.'
+        'No pudimos publicar el registro. Revisá tu conexión e intentá nuevamente.'
       )
     } finally {
       setReviewSaving(false)
@@ -276,7 +271,7 @@ export default function QuickReview({ open, onClose }) {
         {successMessage ? (
           <div className="quick-review-success">
             <h2 id="quick-review-title">
-              ¡Reseña publicada!
+              ¡Registro publicado!
             </h2>
 
             <p className="profile-success" role="status">
@@ -284,7 +279,7 @@ export default function QuickReview({ open, onClose }) {
             </p>
 
             <p>
-              Ya podés encontrarla en tu historial de Actividad.
+              Ya podés encontrarlo en tu Diario.
             </p>
 
             <button
@@ -298,11 +293,11 @@ export default function QuickReview({ open, onClose }) {
         ) : !series ? (
           <div className="quick-review-search">
             <h2 id="quick-review-title">
-              ¿Qué serie querés reseñar?
+              ¿Qué serie querés registrar?
             </h2>
 
             <p className="quick-review-description">
-              Buscá una serie y seleccionala para escribir tu reseña.
+              Buscá una serie y seleccionala para registrarla.
             </p>
 
             <input
@@ -311,7 +306,7 @@ export default function QuickReview({ open, onClose }) {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar una serie..."
-              aria-label="Buscar serie para reseñar"
+              aria-label="Buscar serie para registrar"
               autoFocus
               disabled={loadingSeries}
             />
@@ -501,7 +496,6 @@ export default function QuickReview({ open, onClose }) {
                     placeholder={`¿Qué te pareció ${series.name}?`}
                     maxLength={1000}
                     rows={5}
-                    required
                     disabled={reviewSaving}
                   />
 
@@ -533,7 +527,7 @@ export default function QuickReview({ open, onClose }) {
                   >
                     {reviewSaving
                       ? 'Publicando…'
-                      : 'Publicar reseña'}
+                      : 'Registrar'}
                   </button>
                 </form>
               </div>

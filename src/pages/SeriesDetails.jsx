@@ -379,11 +379,6 @@ export default function SeriesDetails() {
     setReviewError('')
     setReviewMessage('')
 
-    if (!reviewText.trim()) {
-      setReviewError('Escribí tu reseña antes de publicarla.')
-      return
-    }
-
     if (reviewText.trim().length > 1000) {
       setReviewError('La reseña no puede superar los 1000 caracteres.')
       return
@@ -695,7 +690,7 @@ export default function SeriesDetails() {
             </button>
             <button type="button" className="detail-library-action" onClick={openNewReview}>
               <DetailIcon name="pencil" />
-              <span>Reseñar</span>
+              <span>Registrar</span>
             </button>
           </div>
         </section>
@@ -869,7 +864,6 @@ export default function SeriesDetails() {
                     placeholder={`¿Qué te pareció ${series.name}?`}
                     maxLength={1000}
                     rows={5}
-                    required
                     disabled={reviewLoading}
                   />
 
@@ -898,7 +892,7 @@ export default function SeriesDetails() {
                       ? 'Guardando…'
                       : editingReviewId
                         ? 'Guardar cambios'
-                        : 'Publicar reseña'}
+                        : 'Registrar'}
                   </button>
                 </form>
               </div>
@@ -983,7 +977,7 @@ export default function SeriesDetails() {
                   )}
                 </div>
 
-                <p className="review-text">{review.text}</p>
+                {review.text?.trim() && <p className="review-text">{review.text}</p>}
 
                 <p className="review-author">
                   {review.userId === currentUserId

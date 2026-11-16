@@ -4,12 +4,13 @@ import { getSeriesDetails, posterUrl } from '../services/tmdb'
 
 function dateParts(date) {
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return { day: '—', month: '', full: 'Fecha no registrada' }
+    return { day: '—', month: '', year: null, full: 'Fecha no registrada' }
   }
   const [year, month, day] = date.split('-').map(Number)
   const value = new Date(year, month - 1, day, 12)
   return {
     day: String(day).padStart(2, '0'),
+    year: String(year),
     month: value.toLocaleDateString('es-AR', { month: 'short' }).replace('.', '').toUpperCase(),
     full: value.toLocaleDateString('es-AR'),
   }
@@ -43,8 +44,10 @@ export default function ActivityList({ reviews, favorites, watched, onEdit, onDe
 
   return (
     <div className="profile-activity-list">
-      {reviews.map((review) => {
+      {reviews.map((review, index) => {
         const date = dateParts(review.watchedAt)
+        const previousYear = index > 0 ? dateParts(reviews[index - 1].watchedAt).year : null
+        const showYear = index === 0 || date.year !== previousYear
         const series = details[review.seriesId]
         const saved = watched.find((item) => item.id === review.seriesId)
         const image = posterUrl(series?.poster_path || saved?.poster_path, 'w185')
@@ -52,7 +55,14 @@ export default function ActivityList({ reviews, favorites, watched, onEdit, onDe
         const favorite = favorites.some((item) => item.id === review.seriesId)
 
         return (
-          <article className="profile-activity-item" key={review.id}>
+          <div className="profile-activity-entry" key={review.id}>
+            {showYear && (
+              <div className="diary-year-heading" role="heading" aria-level="3">
+                <span>{date.year || 'Sin fecha'}</span>
+                <span className="diary-year-line" aria-hidden="true" />
+              </div>
+            )}
+          <article className="profile-activity-item">
             <div className="profile-activity-date" title={date.full}>
               <span>{date.month}</span>
               <strong>{date.day}</strong>
@@ -114,6 +124,7 @@ export default function ActivityList({ reviews, favorites, watched, onEdit, onDe
               </button>
             </div>
           </article>
+          </div>
         )
       })}
     </div>
